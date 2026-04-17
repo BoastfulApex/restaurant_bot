@@ -1,13 +1,13 @@
 # Django backend
-Django==6.0.4
-djangorestframework==3.17.1
-django-cors-headers==4.9.0
+Django==5.2
+djangorestframework==3.15.2
+django-cors-headers==4.3.1
 django-jazzmin==3.0.4
-Pillow==12.2.0
-psycopg2-binary==2.9.11
-python-dotenv==1.2.2
-requests==2.33.1
+Pillow==10.3.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+requests==2.32.3
 
 # Telegram bot
-aiogram==3.27.0
-aiofiles==25.1.0
+aiogram==3.6.0
+aiofiles==23.2.1
