@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>Ansor — Muslim Canned Meat</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #f0d080;
+      --gold-dark: #8b6914;
+      --black: #0a0a0a;
+      --black-soft: #111111;
+      --black-card: #181818;
+      --black-border: #2a2a2a;
+      --white: #f5f0e8;
+      --white-muted: #a89880;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Crimson Pro', Georgia, serif; background: var(--black); color: var(--white); min-height: 100vh; overflow-x: hidden; }
+
+    @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    @keyframes mapSlideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+    .gold-text {
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold-light), var(--gold), var(--gold-light), var(--gold-dark));
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: shimmer 4s linear infinite;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(10,10,10,0.96); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--black-border);
+      padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 60px;
+    }
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .header-logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--gold-dark), var(--gold-light)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .header-name { font-family: 'Cinzel', serif; font-size: 16px; font-weight: 700; letter-spacing: 3px; }
+    .header-cart { background: linear-gradient(135deg, var(--gold-dark), var(--gold)); color: var(--black); border: none; border-radius: 20px; padding: 7px 14px; font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; cursor: pointer; display: none; }
+
+    /* ── Hero ── */
+    .hero { background: linear-gradient(180deg, #1a1200 0%, var(--black) 100%); padding: 24px 20px 18px; text-align: center; border-bottom: 1px solid var(--black-border); position: relative; overflow: hidden; }
+    .hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.14) 0%, transparent 70%); }
+    .hero-tagline { font-family:'Crimson Pro',serif; font-style:italic; font-size:12px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-bottom:4px; position:relative; }
+    .hero-title { font-family:'Cinzel',serif; font-size:24px; font-weight:700; letter-spacing:4px; position:relative; }
+
+    /* ── Tabs ── */
+    .tabs-wrap { background: var(--black-soft); border-bottom: 1px solid var(--black-border); position: sticky; top: 60px; z-index: 100; }
+    .tabs { display:flex; overflow-x:auto; scrollbar-width:none; padding: 0 8px; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab { white-space:nowrap; padding:14px 18px; background:none; border:none; color:var(--white-muted); font-family:'Cinzel',serif; font-size:11px; letter-spacing:1.5px; cursor:pointer; position:relative; transition:color 0.2s; }
+    .tab::after { content:''; position:absolute; bottom:0; left:50%; right:50%; height:2px; background:linear-gradient(90deg,var(--gold-dark),var(--gold-light)); transition:left 0.3s,right 0.3s; }
+    .tab.active { color:var(--gold-light); }
+    .tab.active::after { left:16px; right:16px; }
+
+    /* ── Products ── */
+    .products { padding:16px; display:flex; flex-direction:column; gap:14px; padding-bottom:100px; animation:fadeUp 0.4s ease both; }
+    .card { background:var(--black-card); border-radius:16px; overflow:hidden; border:1px solid var(--black-border); transition:border-color 0.25s, transform 0.15s; }
+    .card:active { transform:scale(0.99); }
+    .card.in-cart { border-color:var(--gold-dark); }
+    .card-img-wrap { position:relative; overflow:hidden; }
+    .card img { width:100%; height:180px; object-fit:cover; display:block; }
+    .card-img-overlay { position:absolute; inset:0; background:linear-gradient(180deg,transparent 50%,rgba(10,10,10,0.55) 100%); }
+    .card-body { padding:14px; }
+    .card-name { font-family:'Cinzel',serif; font-size:14px; font-weight:600; letter-spacing:0.5px; }
+    .card-weight { font-size:12px; color:var(--white-muted); margin-top:3px; font-style:italic; }
+    .card-desc { font-size:13px; color:var(--white-muted); margin-top:5px; line-height:1.5; }
+    .card-bottom { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+    .card-price { font-family:'Cinzel',serif; font-size:15px; font-weight:700; }
+    .btn-add { background:linear-gradient(135deg,var(--gold-dark),var(--gold)); color:var(--black); border:none; border-radius:20px; padding:8px 18px; font-family:'Cinzel',serif; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; }
+    .qty-row { display:flex; align-items:center; gap:12px; }
+    .btn-qty { width:32px; height:32px; border-radius:50%; border:1px solid var(--gold-dark); background:transparent; color:var(--gold-light); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .btn-qty:active { background:rgba(139,105,20,0.4); }
+    .qty-num { font-family:'Cinzel',serif; font-weight:700; font-size:16px; min-width:20px; text-align:center; color:var(--gold-light); }
+
+    /* ── Float cart ── */
+    .float-cart { position:fixed; bottom:16px; left:16px; right:16px; background:linear-gradient(135deg,#1a1200,#2a1e00); border:1px solid var(--gold-dark); color:var(--gold-light); padding:15px 20px; border-radius:14px; text-align:center; font-family:'Cinzel',serif; font-size:12px; font-weight:600; letter-spacing:1px; cursor:pointer; box-shadow:0 4px 24px rgba(201,168,76,0.2); z-index:100; display:none; }
+
+    /* ── Back header ── */
+    .back-header { position:sticky; top:0; z-index:200; background:rgba(10,10,10,0.96); backdrop-filter:blur(12px); border-bottom:1px solid var(--black-border); padding:0 16px; display:flex; align-items:center; justify-content:space-between; height:56px; }
+    .back-btn { background:none; border:none; color:var(--gold); font-size:22px; cursor:pointer; padding:4px; }
+    .back-title { font-family:'Cinzel',serif; font-size:12px; letter-spacing:2.5px; }
+
+    /* ── Pages ── */
+    .page { padding:16px; padding-bottom:100px; }
+    .page-title { font-family:'Cinzel',serif; font-size:10px; letter-spacing:2.5px; color:var(--white-muted); text-transform:uppercase; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--black-border); }
+    .cart-item { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--black-border); }
+    .cart-item-name { font-family:'Cinzel',serif; font-size:12px; letter-spacing:0.5px; }
+    .cart-item-price { font-size:13px; color:var(--gold); margin-top:3px; font-style:italic; }
+    .total-row { display:flex; justify-content:space-between; align-items:center; padding:18px 0; font-family:'Cinzel',serif; font-size:13px; letter-spacing:1px; border-top:1px solid var(--gold-dark); margin-top:8px; }
+    .total-amount { font-size:18px; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom:12px; }
+    .form-label { display:block; font-family:'Cinzel',serif; font-size:10px; letter-spacing:2px; color:var(--white-muted); margin-bottom:6px; }
+    input, textarea { width:100%; background:var(--black-card); border:1px solid var(--black-border); border-radius:10px; color:var(--white); padding:12px 14px; font-family:'Crimson Pro',serif; font-size:16px; outline:none; transition:border-color 0.2s; -webkit-appearance:none; appearance:none; }
+    input:focus, textarea:focus { border-color:var(--gold-dark); }
+    input::placeholder, textarea::placeholder { color:var(--white-muted); }
+    textarea { height:80px; resize:none; }
+    .gold-divider { height:1px; background:linear-gradient(90deg,transparent,var(--gold-dark),transparent); margin:8px 0; }
+    .btn-main { width:100%; background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light)); border:none; border-radius:12px; color:var(--black); padding:15px; font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:2.5px; cursor:pointer; transition:opacity 0.2s; margin-top:8px; }
+    .btn-main:disabled { opacity:0.45; cursor:not-allowed; }
+    .btn-main:active:not(:disabled) { opacity:0.85; }
+
+    /* ── Map modal ── */
+    .map-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.85);
+      display: none; flex-direction: column;
+    }
+    .map-overlay.open { display: flex; }
+    .map-sheet {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 90vh;
+      background: var(--black-soft);
+      border-radius: 20px 20px 0 0;
+      border-top: 1px solid var(--black-border);
+      display: flex; flex-direction: column;
+      animation: mapSlideUp 0.35s ease;
+    }
+    .map-handle-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--black-border);
+      flex-shrink: 0;
+    }
+    .map-title { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2px; color: var(--white); }
+    .map-close { background: none; border: none; color: var(--white-muted); font-size: 22px; cursor: pointer; }
+    #map {
+      flex: 1;
+      width: 100%;
+      border: none;
+    }
+    .map-search-wrap {
+      padding: 10px 12px;
+      background: var(--black-soft);
+      border-bottom: 1px solid var(--black-border);
+      flex-shrink: 0;
+    }
+    .map-search {
+      width: 100%; background: var(--black-card); border: 1px solid var(--black-border);
+      border-radius: 10px; color: var(--white); padding: 10px 14px;
+      font-family: 'Crimson Pro', serif; font-size: 14px; outline: none;
+    }
+    .map-search:focus { border-color: var(--gold-dark); }
+    .map-search::placeholder { color: var(--white-muted); }
+    .map-footer {
+      padding: 12px 16px; flex-shrink: 0;
+      background: var(--black-soft); border-top: 1px solid var(--black-border);
+    }
+    .map-selected-addr {
+      font-size: 13px; color: var(--white-muted); font-style: italic;
+      margin-bottom: 10px; min-height: 18px; text-align: center;
+    }
+    .map-btn-confirm {
+      width: 100%; background: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light));
+      border: none; border-radius: 12px; color: var(--black);
+      padding: 13px; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700;
+      letter-spacing: 2px; cursor: pointer;
+    }
+    .map-btn-myloc {
+      position: absolute; bottom: 120px; right: 12px; z-index: 600;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--black-card); border: 1px solid var(--gold-dark);
+      color: var(--gold-light); font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Selected location pill in form */
+    .loc-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(139,105,20,0.15); border: 1px solid var(--gold-dark);
+      border-radius: 10px; padding: 11px 14px; margin-bottom: 12px; cursor: pointer;
+    }
+    .loc-pill-text { font-size: 13px; color: var(--gold-light); font-style: italic; flex: 1; margin-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .loc-pill-edit { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px; color: var(--gold-dark); white-space: nowrap; }
+
+    /* ── Success ── */
+    .success-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:80px 32px; text-align:center; gap:10px; }
+    .success-icon { font-size:64px; }
+    .success-title { font-family:'Cinzel',serif; font-size:18px; letter-spacing:2px; margin-top:8px; }
+    .success-sub { font-size:15px; color:var(--white-muted); font-style:italic; line-height:1.6; }
+
+    .loading { text-align:center; padding:60px 20px; color:var(--white-muted); font-style:italic; font-size:15px; }
+    .dot { display:inline-block; animation:pulse 1.4s infinite; margin:0 2px; }
+    .dot:nth-child(2){animation-delay:0.2s} .dot:nth-child(3){animation-delay:0.4s}
+
+    /* Leaflet pin override */
+    .leaflet-marker-icon { filter: drop-shadow(0 2px 6px rgba(201,168,76,0.6)); }
+  </style>
+</head>
+<body>
+
+<!-- ══ MENU PAGE ══════════════════════════════════════════════ -->
+<div id="menuPage">
+  <div class="header">
+    <div class="header-logo">
+      <div class="header-logo-icon">🥩</div>
+      <span class="header-name gold-text">ANSOR</span>
+    </div>
+    <button class="header-cart" id="headerCartBtn" onclick="goPage('cart')">
+      🛒 <span id="headerCartText"></span>
+    </button>
+  </div>
+  <div class="hero">
+    <div class="hero-tagline">Muslim Canned Meat</div>
+    <div class="hero-title gold-text">HALOL MAHSULOTLAR</div>
+  </div>
+  <div class="tabs-wrap"><div class="tabs" id="tabs"></div></div>
+  <div class="products" id="products">
+    <div class="loading"><span class="dot">◆</span><span class="dot">◆</span><span class="dot">◆</span></div>
+  </div>
+  <div class="float-cart" id="floatCart" onclick="goPage('cart')"></div>
+</div>
+
+<!-- ══ CART PAGE ══════════════════════════════════════════════ -->
+<div id="cartPage" style="display:none">
+  <div class="back-header">
+    <button class="back-btn" onclick="goPage('menu')">←</button>
+    <span class="back-title">SAVAT</span>
+    <span style="width:32px"></span>
+  </div>
+  <div class="page" id="cartItems"></div>
+</div>
+
+<!-- ══ FORM PAGE ══════════════════════════════════════════════ -->
+<div id="formPage" style="display:none">
+  <div class="back-header">
+    <button class="back-btn" onclick="goPage('cart')">←</button>
+    <span class="back-title">BUYURTMA</span>
+    <span style="width:32px"></span>
+  </div>
+  <div class="page">
+    <p class="page-title">Ma'lumotlaringiz</p>
+    <div class="form-group">
+      <label class="form-label">ISMINGIZ *</label>
+      <input type="text" id="fullName" placeholder="To'liq ismingiz" autocomplete="name" autocorrect="off" autocapitalize="words"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">TELEFON *</label>
+      <input type="tel" id="phone" placeholder="+998 90 123 45 67" autocomplete="tel" inputmode="tel" value="+998 "/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">YETKAZISH MANZILI *</label>
+      <!-- Ko'rinadi: Lokatsiya tanlanmagan -->
+      <div id="locNotSelected">
+        <button class="btn-main" style="margin-top:0;background:linear-gradient(135deg,#1a1200,#2a1e00);color:var(--gold-light);border:1px solid var(--gold-dark)" onclick="openMap()">
+          📍 &nbsp;XARITADAN MANZIL TANLASH
+        </button>
+      </div>
+      <!-- Ko'rinadi: Lokatsiya tanlangan -->
+      <div id="locSelected" style="display:none">
+        <div class="loc-pill" onclick="openMap()">
+          <span class="loc-pill-text" id="locAddress">📍 Manzil aniqlandi</span>
+          <span class="loc-pill-edit">O'ZGARTIRISH</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">IZOH</label>
+      <textarea id="note" placeholder="Qo'shimcha xohishlar, podez raqami..."></textarea>
+    </div>
+    <div class="gold-divider"></div>
+    <div class="total-row">
+      <span>JAMI</span>
+      <span class="total-amount gold-text" id="formTotal"></span>
+    </div>
+    <button class="btn-main" id="submitBtn" onclick="submitOrder()">TASDIQLASH</button>
+  </div>
+</div>
+
+<!-- ══ SUCCESS PAGE ══════════════════════════════════════════ -->
+<div id="successPage" style="display:none">
+  <div class="success-wrap">
+    <div class="success-icon">✅</div>
+    <div class="success-title gold-text">BUYURTMA QABUL QILINDI</div>
+    <div class="success-sub">Tez orada siz bilan bog'lanamiz.<br>Rahmat!</div>
+    <div style="height:20px"></div>
+    <button class="btn-main" style="max-width:220px" onclick="goPage('menu')">BOSH SAHIFA</button>
+  </div>
+</div>
+
+<!-- ══ MAP MODAL ══════════════════════════════════════════════ -->
+<div class="map-overlay" id="mapOverlay">
+  <div class="map-sheet">
+    <div class="map-handle-bar">
+      <span class="map-title">📍 MANZILNI TANLANG</span>
+      <button class="map-close" onclick="closeMap()">✕</button>
+    </div>
+    <div class="map-search-wrap">
+      <input class="map-search" id="mapSearch" placeholder="🔍 Manzil qidirish..." oninput="searchAddress(this.value)"/>
+    </div>
+    <div id="map"></div>
+    <button class="map-btn-myloc" onclick="goToMyLocation()" title="Mening joylashuvim">📡</button>
+    <div class="map-footer">
+      <div class="map-selected-addr" id="mapAddrText">Xaritada kerakli joyni bosing</div>
+      <button class="map-btn-confirm" id="mapConfirmBtn" onclick="confirmLocation()" disabled style="opacity:0.5">
+        MANZILNI TASDIQLASH
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = 'https://3367-195-158-30-179.ngrok-free.app/api';
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.enableClosingConfirmation();
+  }
+
+  let menu = [], cart = {}, activeTab = 0;
+  let selectedLocation = null; // { lat, lng, address }
+  let leafletMap = null, leafletMarker = null;
+  let searchTimeout = null;
+
+  // ── Cart helpers ─────────────────────────────────────────────
+  const cartTotal = () => Object.values(cart).reduce((s,i) => s + i.price * i.qty, 0);
+  const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
+
+  function addToCart(p) {
+    cart[p.id] ? cart[p.id].qty++ : (cart[p.id] = {...p, qty:1});
+    updateCartUI(); renderProducts();
+  }
+  function removeFromCart(id) {
+    if (!cart[id]) return;
+    if (--cart[id].qty === 0) delete cart[id];
+    updateCartUI(); renderProducts();
+  }
+  function updateCartUI() {
+    const c = cartCount(), t = cartTotal();
+    const fc = document.getElementById('floatCart');
+    const hb = document.getElementById('headerCartBtn');
+    if (c > 0) {
+      fc.style.display = 'block';
+      fc.innerHTML = `🛒 &nbsp;SAVAT (${c} ta) &nbsp;·&nbsp; <span class="gold-text">${t.toLocaleString()} so'm</span>`;
+      hb.style.display = 'inline-block';
+      document.getElementById('headerCartText').textContent = `${c} | ${t.toLocaleString()}`;
+    } else { fc.style.display = 'none'; hb.style.display = 'none'; }
+  }
+
+  // ── Pages ────────────────────────────────────────────────────
+  function goPage(name) {
+    ['menu','cart','form','success'].forEach(p =>
+      document.getElementById(p+'Page').style.display = p===name ? 'block' : 'none'
+    );
+    if (name==='cart') renderCart();
+    if (name==='form') {
+      document.getElementById('formTotal').textContent = cartTotal().toLocaleString() + " so'm";
+      updateLocUI();
+      setTimeout(() => document.getElementById('fullName').focus(), 300);
+    }
+    window.scrollTo(0,0);
+  }
+
+  function updateLocUI() {
+    const notSel = document.getElementById('locNotSelected');
+    const sel = document.getElementById('locSelected');
+    const addrEl = document.getElementById('locAddress');
+    if (selectedLocation) {
+      notSel.style.display = 'none';
+      sel.style.display = 'block';
+      addrEl.textContent = '📍 ' + (selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`);
+    } else {
+      notSel.style.display = 'block';
+      sel.style.display = 'none';
+    }
+  }
+
+  // ── Render menu ──────────────────────────────────────────────
+  function renderTabs() {
+    document.getElementById('tabs').innerHTML = menu.map((cat,i) =>
+      `<button class="tab ${i===activeTab?'active':''}" onclick="switchTab(${i})">${cat.name}</button>`
+    ).join('');
+  }
+
+  function renderProducts() {
+    if (!menu[activeTab]) return;
+    document.getElementById('products').innerHTML = menu[activeTab].products.map(p => {
+      const qty = cart[p.id]?.qty || 0;
+      const safe = JSON.stringify(p).replace(/"/g,'&quot;');
+      const imgHtml = p.image
+        ? `<div class="card-img-wrap"><img src="${p.image}" alt="${p.name}" loading="lazy"/><div class="card-img-overlay"></div></div>`
+        : '';
+      const ctrl = qty===0
+        ? `<button class="btn-add" onclick="addToCart(${safe})">+ QO'SHISH</button>`
+        : `<div class="qty-row">
+             <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
+             <span class="qty-num">${qty}</span>
+             <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+           </div>`;
+      return `<div class="card ${qty>0?'in-cart':''}">
+        ${imgHtml}
+        <div class="card-body">
+          <div class="card-name">${p.name}</div>
+          ${p.weight?`<div class="card-weight">${p.weight}</div>`:''}
+          ${p.description?`<div class="card-desc">${p.description}</div>`:''}
+          <div class="card-bottom">
+            <span class="card-price gold-text">${p.price.toLocaleString()} so'm</span>
+            ${ctrl}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function switchTab(i) {
+    activeTab = i; renderTabs();
+    const el = document.getElementById('products');
+    el.style.animation='none'; el.offsetHeight; el.style.animation='fadeUp 0.3s ease both';
+    renderProducts(); window.scrollTo(0,0);
+  }
+
+  // ── Cart page ────────────────────────────────────────────────
+  function renderCart() {
+    const items = Object.values(cart);
+    const el = document.getElementById('cartItems');
+    if (!items.length) {
+      el.innerHTML = `<div style="text-align:center;padding:60px 0;color:var(--white-muted);font-style:italic;font-size:15px">Savat bo'sh</div>`;
+      return;
+    }
+    el.innerHTML = `
+      <p class="page-title">Tanlangan mahsulotlar</p>
+      ${items.map(item => {
+        const safe = JSON.stringify(item).replace(/"/g,'&quot;');
+        return `<div class="cart-item">
+          <div>
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">${(item.price*item.qty).toLocaleString()} so'm</div>
+          </div>
+          <div class="qty-row">
+            <button class="btn-qty" onclick="removeFromCart(${item.id});renderCart()">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="btn-qty" onclick="addToCart(${safe});renderCart()">+</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="gold-divider" style="margin-top:4px"></div>
+      <div class="total-row">
+        <span>JAMI</span>
+        <span class="total-amount gold-text">${cartTotal().toLocaleString()} so'm</span>
+      </div>
+      <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">BUYURTMA BERISH →</button>`;
+  }
+
+  // ── MAP ──────────────────────────────────────────────────────
+  function openMap() {
+    document.getElementById('mapOverlay').classList.add('open');
+    // Leaflet faqat bir marta init
+    if (!leafletMap) {
+      setTimeout(initMap, 50);
+    } else {
+      leafletMap.invalidateSize();
+    }
+  }
+
+  function closeMap() {
+    document.getElementById('mapOverlay').classList.remove('open');
+  }
+
+  function initMap() {
+    // Toshkent markazi
+    const defaultLat = 41.2995, defaultLng = 69.2401;
+    leafletMap = L.map('map', { zoomControl: true }).setView([defaultLat, defaultLng], 12);
+
+    // Dark tile — CartoDB Dark Matter
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(leafletMap);
+
+    // Maxsus oltin marker
+    const goldIcon = L.divIcon({
+      html: `<div style="width:36px;height:36px;background:linear-gradient(135deg,#8b6914,#f0d080);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #c9a84c;box-shadow:0 2px 8px rgba(201,168,76,0.6)"></div>`,
+      iconSize: [36, 36], iconAnchor: [18, 36], className: ''
+    });
+
+    leafletMarker = L.marker([defaultLat, defaultLng], { icon: goldIcon, draggable: true });
+
+    // Xaritada bosish
+    leafletMap.on('click', function(e) {
+      placeMarker(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Marker sudrab qo'yish
+    leafletMarker.on('dragend', function() {
+      const pos = leafletMarker.getLatLng();
+      reverseGeocode(pos.lat, pos.lng);
+    });
+
+    // Agar avval tanlangan bo'lsa
+    if (selectedLocation) {
+      placeMarker(selectedLocation.lat, selectedLocation.lng, selectedLocation.address);
+      leafletMap.setView([selectedLocation.lat, selectedLocation.lng], 15);
+    }
+  }
+
+  function placeMarker(lat, lng, address) {
+    if (!leafletMarker.map) leafletMarker.addTo(leafletMap);
+    leafletMarker.setLatLng([lat, lng]);
+    if (!address) reverseGeocode(lat, lng);
+    else setMapAddr(lat, lng, address);
+  }
+
+  async function reverseGeocode(lat, lng) {
+    document.getElementById('mapAddrText').textContent = '🔄 Manzil aniqlanmoqda...';
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=uz`);
+      const d = await r.json();
+      const addr = d.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setMapAddr(lat, lng, addr);
+    } catch {
+      setMapAddr(lat, lng, `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    }
+  }
+
+  function setMapAddr(lat, lng, address) {
+    document.getElementById('mapAddrText').textContent = address;
+    const btn = document.getElementById('mapConfirmBtn');
+    btn.disabled = false; btn.style.opacity = '1';
+    // Vaqtincha saqlash
+    window._pendingLoc = { lat, lng, address };
+  }
+
+  function confirmLocation() {
+    if (!window._pendingLoc) return;
+    selectedLocation = window._pendingLoc;
+    closeMap();
+    updateLocUI();
+  }
+
+  function goToMyLocation() {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        leafletMap.setView([lat, lng], 16);
+        placeMarker(lat, lng);
+      },
+      () => alert('Lokatsiya aniqlab bo\'lmadi')
+    );
+  }
+
+  // Manzil qidirish (Nominatim)
+  function searchAddress(val) {
+    clearTimeout(searchTimeout);
+    if (val.length < 3) return;
+    searchTimeout = setTimeout(async () => {
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&accept-language=uz`);
+        const d = await r.json();
+        if (d.length > 0) {
+          const { lat, lon, display_name } = d[0];
+          leafletMap.setView([+lat, +lon], 15);
+          placeMarker(+lat, +lon, display_name);
+        }
+      } catch {}
+    }, 600);
+  }
+
+  // ── Submit ───────────────────────────────────────────────────
+  async function submitOrder() {
+    const fn = document.getElementById('fullName').value.trim();
+    const ph = document.getElementById('phone').value.trim();
+    if (!fn || !ph) { alert('Ism va telefon raqamini kiriting!'); return; }
+    if (!selectedLocation) { alert('Yetkazish manzilini xaritadan tanlang!'); return; }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'YUBORILMOQDA...';
+
+    try {
+      const res = await fetch(`${API}/orders/`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          telegram_id: tg?.initDataUnsafe?.user?.id || 0,
+          full_name: fn, phone: ph,
+          address: selectedLocation.address,
+          note: document.getElementById('note').value.trim(),
+          latitude: selectedLocation.lat,
+          longitude: selectedLocation.lng,
+          total_price: cartTotal(),
+          items: Object.values(cart).map(i => ({
+            product_id: i.id, name: i.name, price: i.price, quantity: i.qty
+          }))
+        })
+      });
+      if (res.ok) {
+        cart = {}; selectedLocation = null;
+        updateCartUI(); goPage('success');
+      } else {
+        alert('Xatolik yuz berdi, qayta urinib ko\'ring');
+        btn.disabled = false; btn.textContent = 'TASDIQLASH';
+      }
+    } catch {
+      alert('Internet bilan muammo');
+      btn.disabled = false; btn.textContent = 'TASDIQLASH';
+    }
+  }
+
+  // ── Phone input guard ────────────────────────────────────────
+  const phoneInput = document.getElementById('phone');
+  const PREFIX = '+998 ';
+  phoneInput.addEventListener('input', () => {
+    if (!phoneInput.value.startsWith(PREFIX)) {
+      phoneInput.value = PREFIX;
+    }
+  });
+  phoneInput.addEventListener('keydown', e => {
+    if ((e.key === 'Backspace' || e.key === 'Delete') && phoneInput.value === PREFIX) {
+      e.preventDefault();
+    }
+  });
+  phoneInput.addEventListener('focus', () => {
+    if (!phoneInput.value.startsWith(PREFIX)) phoneInput.value = PREFIX;
+    setTimeout(() => phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length), 0);
+  });
+
+  // ── Load menu ────────────────────────────────────────────────
+  async function loadMenu() {
+    try {
+      menu = await (await fetch(`${API}/menu/`)).json();
+      renderTabs(); renderProducts();
+    } catch {
+      document.getElementById('products').innerHTML =
+        '<div class="loading" style="color:#c0392b">❌ Menyu yuklanmadi</div>';
+    }
+  }
+  loadMenu();
+</script>
+</body>
+</html>
