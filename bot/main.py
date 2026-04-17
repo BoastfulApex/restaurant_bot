@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://3367-195-158-30-179.ngrok-free.app')
+WEBAPP_URL = os.getenv('WEBAPP_URL', 'https://admin.ansortushenka.uz/')
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -24,7 +24,7 @@ async def start(message: types.Message):
         )]
     ])
     await message.answer(
-        "🍽 <b>Aksu restoranga xush kelibsiz!</b>\n\n"
+        "🍽 <b>Ansor Tushenka Botiga xush kelibsiz!</b>\n\n"
         "Menyuni ko'rish va buyurtma berish uchun tugmani bosing 👇",
         reply_markup=keyboard,
         parse_mode="HTML"
