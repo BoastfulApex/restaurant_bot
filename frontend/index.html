@@ -3,306 +3,395 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-  <title>Ansor — Muslim Canned Meat</title>
+  <title>Ansor — Halol Mahsulotlar</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
       --green: #2e7d32;
-      --green-light: #66bb6a;
+      --green-light: #4caf50;
       --green-pale: #e8f5e9;
-      --green-mid: #43a047;
-      --salat: #a5d6a7;
+      --green-mid: #388e3c;
       --white: #ffffff;
-      --white-soft: #f4f9f4;
-      --gray: #6b7280;
-      --gray-light: #e5e7eb;
-      --black: #1a1a1a;
-      --card-bg: #ffffff;
-      --bg: #f4f9f4;
-      --nav-h: 64px;
+      --bg: #f5f7f5;
+      --gray-light: #e8eae8;
+      --gray: #757575;
+      --gray-dark: #424242;
+      --black: #1b1b1b;
+      --card: #ffffff;
+      --nav-h: 60px;
+      --radius: 14px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Crimson Pro', Georgia, serif; background: var(--bg); color: var(--black); min-height: 100vh; overflow-x: hidden; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--black); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 
-    @keyframes shimmer { 0%{background-position:-200% center} 100%{background-position:200% center} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-    @keyframes mapSlideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    /* ── Animations ── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
+    @keyframes slideUp  { from { transform:translateY(100%) } to { transform:translateY(0) } }
+    @keyframes scaleIn  { from { transform:scale(0.92); opacity:0 } to { transform:scale(1); opacity:1 } }
+    @keyframes spin     { to { transform:rotate(360deg) } }
+    @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.35} }
+    @keyframes bounce   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    @keyframes ripple   { 0%{transform:scale(0);opacity:.4} 100%{transform:scale(2.5);opacity:0} }
 
-    .gold-text {
-      color: var(--green);
-      font-weight: 700;
-    }
+    .anim-fadeup  { animation: fadeUp  .35s cubic-bezier(.25,.8,.25,1) both }
+    .anim-scalein { animation: scaleIn .3s cubic-bezier(.25,.8,.25,1) both }
 
-    /* ── Page wrapper ── */
+    /* ── Page system ── */
     .page-wrap { display: none; flex-direction: column; min-height: 100vh; }
-    .page-wrap.active { display: flex; }
+    .page-wrap.active { display: flex; animation: fadeIn .25s ease both; }
+
+    /* ── SVG icons ── */
+    .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .icon svg { display: block; }
 
     /* ── Top header ── */
     .top-header {
       position: sticky; top: 0; z-index: 300;
-      background: var(--white); backdrop-filter: blur(14px);
+      background: var(--white);
       border-bottom: 1px solid var(--gray-light);
-      padding: 10px 16px 0;
+      padding: 12px 16px 0;
     }
-    .logo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .logo-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .logo { display: flex; align-items: center; gap: 10px; }
-    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--green), var(--green-light)); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-    .logo-name { font-family: 'Cinzel', serif; font-size: 17px; font-weight: 700; letter-spacing: 3px; color: var(--green); }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: var(--green);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-name { font-size: 18px; font-weight: 700; letter-spacing: .5px; color: var(--black); }
+    .logo-name span { color: var(--green); }
 
     /* ── Address bar ── */
     .addr-bar {
       display: flex; align-items: center; gap: 10px;
-      background: var(--green-pale); border: 1px solid var(--salat);
+      background: var(--green-pale); border: 1.5px solid #c8e6c9;
       border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; cursor: pointer;
+      transition: background .2s;
     }
-    .addr-icon { font-size: 18px; flex-shrink: 0; }
-    .addr-text { flex: 1; }
-    .addr-label { font-size: 11px; color: var(--green); letter-spacing: 1px; font-family: 'Cinzel', serif; }
-    .addr-value { font-size: 13px; color: var(--black); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-    .addr-arrow { color: var(--green); font-size: 16px; }
+    .addr-bar:active { background: #dcedc8; }
+    .addr-text { flex: 1; min-width: 0; }
+    .addr-label { font-size: 10px; font-weight: 600; color: var(--green); letter-spacing: .5px; text-transform: uppercase; }
+    .addr-value { font-size: 13px; color: var(--gray-dark); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* ── Category tabs ── */
-    .tabs-wrap { background: var(--white); border-bottom: 1px solid var(--gray-light); position: sticky; top: 118px; z-index: 200; }
-    .tabs { display: flex; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
+    /* ── Tabs ── */
+    .tabs-wrap { background: var(--white); border-bottom: 1px solid var(--gray-light); position: sticky; top: 115px; z-index: 200; }
+    .tabs { display: flex; overflow-x: auto; scrollbar-width: none; padding: 0 12px; gap: 4px; }
     .tabs::-webkit-scrollbar { display: none; }
-    .tab { white-space: nowrap; padding: 12px 16px; background: none; border: none; color: var(--gray); font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1.5px; cursor: pointer; position: relative; transition: color 0.2s; }
-    .tab::after { content: ''; position: absolute; bottom: 0; left: 50%; right: 50%; height: 2px; background: var(--green); transition: left 0.25s, right 0.25s; }
-    .tab.active { color: var(--green); }
-    .tab.active::after { left: 12px; right: 12px; }
+    .tab {
+      white-space: nowrap; padding: 10px 14px; background: none; border: none;
+      color: var(--gray); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; position: relative; transition: color .2s;
+    }
+    .tab::after { content:''; position:absolute; bottom:0; left:14px; right:14px; height:2px; background:var(--green); border-radius:2px 2px 0 0; transform:scaleX(0); transition:transform .25s; }
+    .tab.active { color: var(--green); font-weight: 600; }
+    .tab.active::after { transform:scaleX(1); }
 
     /* ── Product grid ── */
-    .products-wrap { padding: 14px 12px; padding-bottom: calc(var(--nav-h) + 20px); flex: 1; }
-    .cat-section { margin-bottom: 20px; }
-    .cat-title { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px; color: var(--green); text-transform: uppercase; padding: 6px 0 10px; border-bottom: 2px solid var(--green-pale); margin-bottom: 12px; }
+    .products-wrap { padding: 14px 12px; padding-bottom: calc(var(--nav-h) + 24px); flex: 1; }
+    .cat-section { margin-bottom: 24px; }
+    .cat-title { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; padding: 4px 0 10px; margin-bottom: 10px; border-bottom: 1px solid var(--gray-light); }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    .card { background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--gray-light); box-shadow: 0 1px 6px rgba(0,0,0,0.06); transition: border-color 0.2s; display: flex; flex-direction: column; }
-    .card.in-cart { border-color: var(--green-light); box-shadow: 0 0 0 2px var(--green-pale); }
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--gray-light);
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
+      transition: box-shadow .2s, border-color .2s, transform .15s;
+      display: flex; flex-direction: column;
+    }
+    .card:active { transform: scale(.98); }
+    .card.in-cart { border-color: var(--green-light); box-shadow: 0 0 0 2px #c8e6c9; }
     .card-img-wrap { position: relative; overflow: hidden; }
-    .card img { width: 100%; height: 130px; object-fit: cover; display: block; }
-    .card-img-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.15) 100%); }
-    .card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; }
-    .card-name { font-family: 'Cinzel', serif; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; line-height: 1.4; color: var(--black); }
-    .card-weight { font-size: 11px; color: var(--gray); margin-top: 2px; font-style: italic; }
-    .card-price { font-family: 'Cinzel', serif; font-size: 13px; font-weight: 700; margin-top: 6px; color: var(--green); }
-    .card-ctrl { margin-top: auto; padding-top: 8px; }
-    .btn-add { width: 32px; height: 32px; border-radius: 50%; background: var(--green); border: none; color: var(--white); font-size: 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    .qty-row { display: flex; align-items: center; gap: 8px; }
-    .btn-qty { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--green-light); background: transparent; color: var(--green); font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .card img { width: 100%; height: 120px; object-fit: cover; display: block; transition: transform .3s; }
+    .card:active img { transform: scale(1.03); }
+    .card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .card-name { font-size: 12px; font-weight: 600; color: var(--black); line-height: 1.4; }
+    .card-weight { font-size: 11px; color: var(--gray); }
+    .card-price { font-size: 14px; font-weight: 700; color: var(--green); margin-top: 2px; }
+    .card-ctrl { margin-top: auto; padding-top: 8px; display: flex; }
+    .btn-add {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--green); border: none; color: var(--white);
+      font-size: 22px; font-weight: 300; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform .15s, background .15s;
+      position: relative; overflow: hidden;
+    }
+    .btn-add:active { transform: scale(.88); background: var(--green-mid); }
+    .qty-row { display: flex; align-items: center; gap: 6px; }
+    .btn-qty {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 1.5px solid var(--green-light); background: transparent; color: var(--green);
+      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+    }
     .btn-qty:active { background: var(--green-pale); }
-    .qty-num { font-family: 'Cinzel', serif; font-weight: 700; font-size: 14px; min-width: 18px; text-align: center; color: var(--green); }
+    .qty-num { font-size: 14px; font-weight: 700; min-width: 18px; text-align: center; color: var(--green); }
 
     /* ── Bottom nav ── */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
       height: var(--nav-h);
-      background: var(--white); backdrop-filter: blur(14px);
+      background: var(--white);
       border-top: 1px solid var(--gray-light);
-      display: flex; align-items: center;
+      display: flex;
     }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; padding: 8px 0; position: relative; }
-    .nav-icon { font-size: 22px; line-height: 1; }
-    .nav-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 1px; color: var(--gray); }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; cursor: pointer; padding: 6px 0; position: relative;
+      transition: opacity .15s;
+    }
+    .nav-item:active { opacity: .6; }
+    .nav-icon-wrap { position: relative; }
+    .nav-label { font-size: 10px; font-weight: 500; color: var(--gray); transition: color .2s; }
     .nav-item.active .nav-label { color: var(--green); }
-    .nav-item.active .nav-icon { filter: none; }
-    .nav-badge { position: absolute; top: 4px; right: calc(50% - 18px); background: var(--green); color: var(--white); border-radius: 10px; font-size: 10px; font-weight: 700; padding: 1px 5px; font-family: 'Cinzel', serif; display: none; }
+    .nav-item.active .nav-svg { stroke: var(--green); }
+    .nav-svg { stroke: var(--gray); transition: stroke .2s; }
+    .nav-badge {
+      position: absolute; top: -4px; right: -6px;
+      background: var(--green); color: var(--white);
+      border-radius: 10px; font-size: 9px; font-weight: 700;
+      padding: 1px 4px; display: none; min-width: 16px; text-align: center;
+    }
 
     /* ── Back header ── */
-    .back-header { position: sticky; top: 0; z-index: 300; background: var(--white); border-bottom: 1px solid var(--gray-light); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; height: 56px; flex-shrink: 0; }
-    .back-btn { background: none; border: none; color: var(--green); font-size: 22px; cursor: pointer; padding: 4px; }
-    .back-title { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2.5px; color: var(--black); }
+    .back-header {
+      position: sticky; top: 0; z-index: 300;
+      background: var(--white); border-bottom: 1px solid var(--gray-light);
+      padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+      height: 54px; flex-shrink: 0;
+    }
+    .back-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; }
+    .back-title { font-size: 15px; font-weight: 600; color: var(--black); }
 
     /* ── Inner pages ── */
-    .inner-page { padding: 16px; padding-bottom: calc(var(--nav-h) + 16px); flex: 1; overflow-y: auto; background: var(--bg); }
-    .page-title { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2.5px; color: var(--gray); text-transform: uppercase; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-light); }
+    .inner-page { padding: 16px; padding-bottom: calc(var(--nav-h) + 16px); flex: 1; background: var(--bg); }
+    .page-title { font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-light); }
 
-    /* ── Cart items ── */
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gray-light); }
-    .cart-item-name { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.5px; color: var(--black); }
-    .cart-item-price { font-size: 13px; color: var(--green); margin-top: 3px; font-style: italic; }
-    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; font-family: 'Cinzel', serif; font-size: 13px; letter-spacing: 1px; border-top: 2px solid var(--green-pale); margin-top: 8px; color: var(--black); }
-    .total-amount { font-size: 18px; color: var(--green); }
+    /* ── Cart ── */
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gray-light); animation: fadeUp .25s ease both; }
+    .cart-item-name { font-size: 13px; font-weight: 600; color: var(--black); }
+    .cart-item-price { font-size: 12px; color: var(--green); margin-top: 3px; font-weight: 500; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-size: 14px; font-weight: 600; border-top: 2px solid var(--green-pale); margin-top: 8px; color: var(--black); }
+    .total-amount { font-size: 18px; font-weight: 700; color: var(--green); }
 
     /* ── Form ── */
-    .form-group { margin-bottom: 12px; }
-    .form-label { display: block; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 2px; color: var(--gray); margin-bottom: 6px; }
-    input, textarea { width: 100%; background: var(--white); border: 1px solid var(--gray-light); border-radius: 10px; color: var(--black); padding: 12px 14px; font-family: 'Crimson Pro', serif; font-size: 16px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; appearance: none; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    input, textarea {
+      width: 100%; background: var(--white); border: 1.5px solid var(--gray-light);
+      border-radius: 10px; color: var(--black); padding: 13px 14px;
+      font-family: 'Inter', sans-serif; font-size: 15px; outline: none;
+      transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none;
+    }
     input:focus, textarea:focus { border-color: var(--green-light); box-shadow: 0 0 0 3px var(--green-pale); }
-    input::placeholder, textarea::placeholder { color: var(--gray); }
+    input::placeholder, textarea::placeholder { color: #bdbdbd; }
     textarea { height: 80px; resize: none; }
-    .gold-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--salat), transparent); margin: 8px 0; }
-    .btn-main { width: 100%; background: var(--green); border: none; border-radius: 12px; color: var(--white); padding: 15px; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; letter-spacing: 2.5px; cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
-    .btn-main:disabled { opacity: 0.45; cursor: not-allowed; }
-    .btn-main:active:not(:disabled) { opacity: 0.85; }
+    .divider { height: 1px; background: var(--gray-light); margin: 12px 0; }
+    .btn-main {
+      width: 100%; background: var(--green); border: none; border-radius: 12px;
+      color: var(--white); padding: 15px; font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 600; letter-spacing: .3px;
+      cursor: pointer; transition: background .2s, transform .15s; margin-top: 8px;
+    }
+    .btn-main:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-main:active:not(:disabled) { background: var(--green-mid); transform: scale(.98); }
+    .btn-outline {
+      width: 100%; background: transparent; border: 1.5px solid var(--green);
+      border-radius: 12px; color: var(--green); padding: 13px;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: background .2s; margin-top: 8px;
+    }
+    .btn-outline:active { background: var(--green-pale); }
 
     /* ── Loc pill ── */
-    .loc-pill { display: flex; align-items: center; justify-content: space-between; background: var(--green-pale); border: 1px solid var(--salat); border-radius: 10px; padding: 11px 14px; margin-bottom: 12px; cursor: pointer; }
-    .loc-pill-text { font-size: 13px; color: var(--green); font-style: italic; flex: 1; margin-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .loc-pill-edit { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 1px; color: var(--green-mid); white-space: nowrap; }
+    .loc-pill { display: flex; align-items: center; gap: 10px; background: var(--green-pale); border: 1.5px solid #c8e6c9; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; }
+    .loc-pill-text { font-size: 13px; color: var(--green-mid); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .loc-pill-edit { font-size: 11px; color: var(--green); font-weight: 600; white-space: nowrap; }
 
     /* ── Success ── */
-    .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 32px; text-align: center; gap: 10px; background: var(--bg); flex: 1; }
-    .success-icon { font-size: 64px; }
-    .success-title { font-family: 'Cinzel', serif; font-size: 18px; letter-spacing: 2px; margin-top: 8px; color: var(--green); }
-    .success-sub { font-size: 15px; color: var(--gray); font-style: italic; line-height: 1.6; }
+    .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 32px; text-align: center; gap: 12px; flex: 1; background: var(--bg); animation: scaleIn .4s ease both; }
+    .success-circle { width: 80px; height: 80px; background: var(--green-pale); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .success-title { font-size: 20px; font-weight: 700; color: var(--black); margin-top: 4px; }
+    .success-sub { font-size: 14px; color: var(--gray); line-height: 1.6; }
 
     /* ── Orders ── */
-    .order-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-    .order-id { font-family: 'Cinzel', serif; font-size: 11px; color: var(--green); letter-spacing: 1px; }
-    .order-total { font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700; margin-top: 8px; color: var(--green); }
-    .order-date { font-size: 11px; color: var(--gray); margin-top: 4px; }
+    .order-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); animation: fadeUp .25s ease both; }
+    .order-header { display: flex; justify-content: space-between; align-items: center; }
+    .order-id { font-size: 13px; font-weight: 600; color: var(--black); }
+    .order-total { font-size: 15px; font-weight: 700; color: var(--green); }
+    .order-date { font-size: 12px; color: var(--gray); margin-top: 6px; }
 
-    /* ── Map modal ── */
-    .map-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.6); display: none; flex-direction: column; }
+    /* ── Map ── */
+    .map-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.5); display: none; flex-direction: column; }
     .map-overlay.open { display: flex; }
-    .map-sheet { position: absolute; bottom: 0; left: 0; right: 0; height: 90vh; background: var(--white); border-radius: 20px 20px 0 0; border-top: 1px solid var(--gray-light); display: flex; flex-direction: column; animation: mapSlideUp 0.35s ease; }
-    .map-handle-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--gray-light); flex-shrink: 0; }
-    .map-title { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 2px; color: var(--black); }
-    .map-close { background: none; border: none; color: var(--gray); font-size: 22px; cursor: pointer; }
-    #map { flex: 1; width: 100%; border: none; }
-    .map-search-wrap { padding: 10px 12px; background: var(--white); border-bottom: 1px solid var(--gray-light); flex-shrink: 0; }
-    .map-search { width: 100%; background: var(--bg); border: 1px solid var(--gray-light); border-radius: 10px; color: var(--black); padding: 10px 14px; font-family: 'Crimson Pro', serif; font-size: 14px; outline: none; }
+    .map-sheet { position: absolute; bottom: 0; left: 0; right: 0; height: 92vh; background: var(--white); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; animation: slideUp .35s cubic-bezier(.25,.8,.25,1); }
+    .map-handle { width: 36px; height: 4px; background: var(--gray-light); border-radius: 2px; margin: 10px auto 0; }
+    .map-handle-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid var(--gray-light); }
+    .map-title { font-size: 15px; font-weight: 600; color: var(--black); }
+    .map-close { background: none; border: none; cursor: pointer; padding: 4px; display: flex; }
+    #map { flex: 1; width: 100%; }
+    .map-search-wrap { padding: 10px 12px; border-bottom: 1px solid var(--gray-light); }
+    .map-search { width: 100%; background: var(--bg); border: 1px solid var(--gray-light); border-radius: 10px; color: var(--black); padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; }
     .map-search:focus { border-color: var(--green-light); }
-    .map-search::placeholder { color: var(--gray); }
-    .map-footer { padding: 12px 16px; flex-shrink: 0; background: var(--white); border-top: 1px solid var(--gray-light); }
-    .map-selected-addr { font-size: 13px; color: var(--gray); font-style: italic; margin-bottom: 10px; min-height: 18px; text-align: center; }
-    .map-btn-confirm { width: 100%; background: var(--green); border: none; border-radius: 12px; color: var(--white); padding: 13px; font-family: 'Cinzel', serif; font-size: 12px; font-weight: 700; letter-spacing: 2px; cursor: pointer; }
-    .map-btn-myloc { position: absolute; bottom: 120px; right: 12px; z-index: 600; width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: 1px solid var(--green-light); color: var(--green); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .map-search::placeholder { color: #bdbdbd; }
+    .map-footer { padding: 12px 16px; border-top: 1px solid var(--gray-light); background: var(--white); }
+    .map-selected-addr { font-size: 13px; color: var(--gray); margin-bottom: 10px; min-height: 18px; text-align: center; }
+    .map-btn-myloc { position: absolute; bottom: 130px; right: 12px; z-index: 600; width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-light); color: var(--green); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 
-    .loading { text-align: center; padding: 60px 20px; color: var(--gray); font-style: italic; font-size: 15px; }
-    .dot { display: inline-block; animation: pulse 1.4s infinite; margin: 0 2px; }
-    .dot:nth-child(2){animation-delay:0.2s} .dot:nth-child(3){animation-delay:0.4s}
-    .leaflet-marker-icon { filter: drop-shadow(0 2px 6px rgba(201,168,76,0.6)); }
-
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--white-muted); font-style: italic; font-size: 15px; }
+    /* ── Misc ── */
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); font-size: 14px; }
+    .loading { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 60px 20px; }
+    .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green-light); animation: bounce 1s infinite; }
+    .loading-dot:nth-child(2) { animation-delay: .15s; }
+    .loading-dot:nth-child(3) { animation-delay: .3s; }
   </style>
 </head>
 <body>
 
-<!-- ══ MENU PAGE ══════════════════════════════════════════════ -->
+<!-- ══ MENU ═══════════════════════════════════════════════════ -->
 <div id="menuPage" class="page-wrap active">
   <div class="top-header">
     <div class="logo-row">
       <div class="logo">
-        <div class="logo-icon">🥩</div>
-        <span class="logo-name gold-text">ANSOR</span>
+        <div class="logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+            <path d="M8 12h8M12 8v8"/>
+          </svg>
+        </div>
+        <span class="logo-name">Ansor <span>Tushonka</span></span>
       </div>
-      <span style="font-family:'Crimson Pro',serif;font-style:italic;font-size:12px;color:var(--white-muted)">Halol mahsulotlar</span>
     </div>
     <div class="addr-bar" onclick="openMap()">
-      <span class="addr-icon">📍</span>
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+      </svg>
       <div class="addr-text">
-        <div class="addr-label">YETKAZISH MANZILI</div>
-        <div class="addr-value" id="headerAddr">Manzil tanlang</div>
+        <div class="addr-label">Yetkazish manzili</div>
+        <div class="addr-value" id="headerAddr">Manzil tanlang →</div>
       </div>
-      <span class="addr-arrow">›</span>
     </div>
   </div>
   <div class="tabs-wrap"><div class="tabs" id="tabs"></div></div>
   <div class="products-wrap" id="products">
-    <div class="loading"><span class="dot">◆</span><span class="dot">◆</span><span class="dot">◆</span></div>
+    <div class="loading">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
   </div>
 </div>
 
-<!-- ══ CART PAGE ══════════════════════════════════════════════ -->
+<!-- ══ CART ════════════════════════════════════════════════════ -->
 <div id="cartPage" class="page-wrap">
   <div class="back-header">
     <span style="width:32px"></span>
-    <span class="back-title">SAVAT</span>
+    <span class="back-title">Savat</span>
     <span style="width:32px"></span>
   </div>
   <div class="inner-page" id="cartItems"></div>
 </div>
 
-<!-- ══ ORDERS PAGE ══════════════════════════════════════════ -->
+<!-- ══ ORDERS ══════════════════════════════════════════════════ -->
 <div id="ordersPage" class="page-wrap">
   <div class="back-header">
     <span style="width:32px"></span>
-    <span class="back-title">BUYURTMALARIM</span>
+    <span class="back-title">Buyurtmalarim</span>
     <span style="width:32px"></span>
   </div>
   <div class="inner-page" id="ordersList">
-    <div class="empty-state">Buyurtmalar tarixi mavjud emas</div>
+    <div class="empty-state">Buyurtmalar tarixi yo'q</div>
   </div>
 </div>
 
-<!-- ══ FORM PAGE ══════════════════════════════════════════════ -->
+<!-- ══ FORM ════════════════════════════════════════════════════ -->
 <div id="formPage" class="page-wrap">
   <div class="back-header">
-    <button class="back-btn" onclick="goPage('cart')">←</button>
-    <span class="back-title">BUYURTMA</span>
+    <button class="back-btn" onclick="goPage('cart')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <span class="back-title">Buyurtma</span>
     <span style="width:32px"></span>
   </div>
   <div class="inner-page">
-    <p class="page-title">Ma'lumotlaringiz</p>
+    <p class="page-title">Ma'lumotlar</p>
     <div class="form-group">
-      <label class="form-label">ISMINGIZ *</label>
-      <input type="text" id="fullName" placeholder="To'liq ismingiz" autocomplete="name" autocorrect="off" autocapitalize="words"/>
+      <label class="form-label">Ismingiz *</label>
+      <input type="text" id="fullName" placeholder="To'liq ismingiz" autocomplete="name" autocapitalize="words"/>
     </div>
     <div class="form-group">
-      <label class="form-label">TELEFON *</label>
-      <input type="tel" id="phone" placeholder="+998 90 123 45 67" autocomplete="tel" inputmode="tel" value="+998 "/>
+      <label class="form-label">Telefon *</label>
+      <input type="tel" id="phone" placeholder="+998 90 123 45 67" inputmode="tel" value="+998 "/>
     </div>
     <div class="form-group">
-      <label class="form-label">YETKAZISH MANZILI *</label>
+      <label class="form-label">Manzil *</label>
       <div id="locNotSelected">
-        <button class="btn-main" style="margin-top:0;background:linear-gradient(135deg,#1a1200,#2a1e00);color:var(--gold-light);border:1px solid var(--gold-dark)" onclick="openMap()">
-          📍 &nbsp;XARITADAN MANZIL TANLASH
+        <button class="btn-outline" onclick="openMap()">
+          Xaritadan manzil tanlash
         </button>
       </div>
       <div id="locSelected" style="display:none">
         <div class="loc-pill" onclick="openMap()">
-          <span class="loc-pill-text" id="locAddress">📍 Manzil aniqlandi</span>
-          <span class="loc-pill-edit">O'ZGARTIRISH</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="loc-pill-text" id="locAddress">Manzil aniqlandi</span>
+          <span class="loc-pill-edit">O'zgartirish</span>
         </div>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">IZOH</label>
+      <label class="form-label">Izoh</label>
       <textarea id="note" placeholder="Qo'shimcha xohishlar, podez raqami..."></textarea>
     </div>
-    <div class="gold-divider"></div>
+    <div class="divider"></div>
     <div class="total-row">
-      <span>JAMI</span>
-      <span class="total-amount gold-text" id="formTotal"></span>
+      <span>Jami</span>
+      <span class="total-amount" id="formTotal"></span>
     </div>
-    <button class="btn-main" id="submitBtn" onclick="submitOrder()">TASDIQLASH</button>
+    <button class="btn-main" id="submitBtn" onclick="submitOrder()">Tasdiqlash</button>
   </div>
 </div>
 
-<!-- ══ SUCCESS PAGE ══════════════════════════════════════════ -->
+<!-- ══ SUCCESS ═════════════════════════════════════════════════ -->
 <div id="successPage" class="page-wrap">
   <div class="success-wrap">
-    <div class="success-icon">✅</div>
-    <div class="success-title gold-text">BUYURTMA QABUL QILINDI</div>
+    <div class="success-circle">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div class="success-title">Buyurtma qabul qilindi!</div>
     <div class="success-sub">Tez orada siz bilan bog'lanamiz.<br>Rahmat!</div>
-    <div style="height:20px"></div>
-    <button class="btn-main" style="max-width:220px" onclick="goPage('menu')">BOSH SAHIFA</button>
+    <button class="btn-main" style="max-width:240px;margin-top:20px" onclick="goPage('menu')">Bosh sahifaga</button>
   </div>
 </div>
 
-<!-- ══ MAP MODAL ══════════════════════════════════════════════ -->
+<!-- ══ MAP ═════════════════════════════════════════════════════ -->
 <div class="map-overlay" id="mapOverlay">
   <div class="map-sheet">
+    <div class="map-handle"></div>
     <div class="map-handle-bar">
-      <span class="map-title">📍 MANZILNI TANLANG</span>
-      <button class="map-close" onclick="closeMap()">✕</button>
+      <span class="map-title">Manzilni tanlang</span>
+      <button class="map-close" onclick="closeMap()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div class="map-search-wrap">
-      <input class="map-search" id="mapSearch" placeholder="🔍 Manzil qidirish..." oninput="searchAddress(this.value)"/>
+      <input class="map-search" id="mapSearch" placeholder="Manzil qidirish..." oninput="searchAddress(this.value)"/>
     </div>
     <div id="map"></div>
-    <button class="map-btn-myloc" onclick="goToMyLocation()" title="Mening joylashuvim">📡</button>
+    <button class="map-btn-myloc" onclick="goToMyLocation()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+    </button>
     <div class="map-footer">
       <div class="map-selected-addr" id="mapAddrText">Xaritada kerakli joyni bosing</div>
-      <button class="map-btn-confirm" id="mapConfirmBtn" onclick="confirmLocation()" disabled style="opacity:0.5">
-        MANZILNI TASDIQLASH
-      </button>
+      <button class="btn-main" id="mapConfirmBtn" onclick="confirmLocation()" disabled style="opacity:.5;margin-top:0">Manzilni tasdiqlash</button>
     </div>
   </div>
 </div>
@@ -310,17 +399,29 @@
 <!-- ══ BOTTOM NAV ══════════════════════════════════════════════ -->
 <nav class="bottom-nav">
   <div class="nav-item active" id="nav-menu" onclick="goPage('menu')">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">ASOSIY</span>
+    <div class="nav-icon-wrap">
+      <svg class="nav-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <span class="nav-label">Asosiy</span>
   </div>
   <div class="nav-item" id="nav-cart" onclick="goPage('cart')">
-    <span class="nav-icon">🛒</span>
-    <span class="nav-label">SAVAT</span>
-    <span class="nav-badge" id="cartBadge">0</span>
+    <div class="nav-icon-wrap">
+      <svg class="nav-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <span class="nav-badge" id="cartBadge">0</span>
+    </div>
+    <span class="nav-label">Savat</span>
   </div>
   <div class="nav-item" id="nav-orders" onclick="goPage('orders')">
-    <span class="nav-icon">📋</span>
-    <span class="nav-label">BUYURTMALAR</span>
+    <div class="nav-icon-wrap">
+      <svg class="nav-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </div>
+    <span class="nav-label">Buyurtmalar</span>
   </div>
 </nav>
 
@@ -333,9 +434,7 @@
   let selectedLocation = null;
   let leafletMap = null, leafletMarker = null;
   let searchTimeout = null;
-  let currentPage = 'menu';
 
-  // ── Cart helpers ─────────────────────────────────────────────
   const cartTotal = () => Object.values(cart).reduce((s,i) => s + i.price * i.qty, 0);
   const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
@@ -349,47 +448,41 @@
     updateCartUI(); renderProducts();
   }
   function updateCartUI() {
-    const c = cartCount();
-    const badge = document.getElementById('cartBadge');
-    if (c > 0) { badge.style.display = 'block'; badge.textContent = c; }
-    else { badge.style.display = 'none'; }
+    const c = cartCount(), badge = document.getElementById('cartBadge');
+    badge.style.display = c > 0 ? 'block' : 'none';
+    badge.textContent = c;
   }
 
-  // ── Pages ────────────────────────────────────────────────────
   function goPage(name) {
-    currentPage = name;
     ['menu','cart','orders','form','success'].forEach(p => {
-      const el = document.getElementById(p + 'Page');
-      if (el) { el.classList.toggle('active', p === name); }
+      document.getElementById(p+'Page')?.classList.toggle('active', p===name);
     });
     ['menu','cart','orders'].forEach(n => {
-      document.getElementById('nav-' + n)?.classList.toggle('active', n === name);
+      document.getElementById('nav-'+n)?.classList.toggle('active', n===name);
     });
-    if (name === 'cart') renderCart();
-    if (name === 'orders') renderOrders();
-    if (name === 'form') {
+    if (name==='cart') renderCart();
+    if (name==='orders') renderOrders();
+    if (name==='form') {
       document.getElementById('formTotal').textContent = cartTotal().toLocaleString() + " so'm";
       updateLocUI();
       setTimeout(() => document.getElementById('fullName').focus(), 300);
     }
-    window.scrollTo(0, 0);
+    window.scrollTo(0,0);
   }
 
   function updateLocUI() {
     const notSel = document.getElementById('locNotSelected');
     const sel = document.getElementById('locSelected');
-    const addrEl = document.getElementById('locAddress');
     if (selectedLocation) {
-      notSel.style.display = 'none'; sel.style.display = 'block';
-      addrEl.textContent = '📍 ' + (selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`);
+      notSel.style.display='none'; sel.style.display='block';
+      document.getElementById('locAddress').textContent = selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`;
     } else {
-      notSel.style.display = 'block'; sel.style.display = 'none';
+      notSel.style.display='block'; sel.style.display='none';
     }
-    const headerAddr = document.getElementById('headerAddr');
-    if (headerAddr) headerAddr.textContent = selectedLocation ? (selectedLocation.address || 'Manzil tanlandi') : 'Manzil tanlang';
+    const h = document.getElementById('headerAddr');
+    if (h) h.textContent = selectedLocation ? (selectedLocation.address || 'Manzil tanlandi') : 'Manzil tanlang →';
   }
 
-  // ── Render menu ──────────────────────────────────────────────
   function renderTabs() {
     document.getElementById('tabs').innerHTML = menu.map((cat,i) =>
       `<button class="tab ${i===activeTab?'active':''}" onclick="switchTab(${i})">${cat.name}</button>`
@@ -399,22 +492,20 @@
   function productCard(p) {
     const qty = cart[p.id]?.qty || 0;
     const safe = JSON.stringify(p).replace(/"/g,'&quot;');
-    const imgHtml = p.image
-      ? `<div class="card-img-wrap"><img src="${p.image}" alt="${p.name}" loading="lazy"/><div class="card-img-overlay"></div></div>`
-      : '';
-    const ctrl = qty === 0
+    const img = p.image ? `<div class="card-img-wrap"><img src="${p.image}" alt="${p.name}" loading="lazy"/></div>` : '';
+    const ctrl = qty===0
       ? `<button class="btn-add" onclick="addToCart(${safe})">+</button>`
       : `<div class="qty-row">
            <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
            <span class="qty-num">${qty}</span>
            <button class="btn-qty" onclick="addToCart(${safe})">+</button>
          </div>`;
-    return `<div class="card ${qty>0?'in-cart':''}" id="product-${p.id}">
-      ${imgHtml}
+    return `<div class="card ${qty>0?'in-cart':''} anim-scalein" id="product-${p.id}">
+      ${img}
       <div class="card-body">
         <div class="card-name">${p.name}</div>
         ${p.weight?`<div class="card-weight">${p.weight}</div>`:''}
-        <div class="card-price gold-text">${p.price.toLocaleString()} so'm</div>
+        <div class="card-price">${p.price.toLocaleString()} so'm</div>
         <div class="card-ctrl">${ctrl}</div>
       </div>
     </div>`;
@@ -422,48 +513,40 @@
 
   function renderProducts() {
     if (!menu.length) return;
-    document.getElementById('products').innerHTML = menu.map((cat, i) =>
-      `<div class="cat-section" id="cat-${i}">
+    document.getElementById('products').innerHTML = menu.map((cat,i) =>
+      `<div class="cat-section anim-fadeup" id="cat-${i}" style="animation-delay:${i*0.05}s">
         <div class="cat-title">${cat.name}</div>
-        <div class="grid">${cat.products.map(p => productCard(p)).join('')}</div>
+        <div class="grid">${cat.products.map(p=>productCard(p)).join('')}</div>
       </div>`
     ).join('');
     initScrollSpy();
   }
 
   function switchTab(i) {
-    activeTab = i; renderTabs();
-    const section = document.getElementById(`cat-${i}`);
-    if (section) {
-      const offset = 175;
-      const top = section.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }
+    activeTab=i; renderTabs();
+    const el = document.getElementById(`cat-${i}`);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 175, behavior:'smooth' });
   }
 
   function initScrollSpy() {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const idx = parseInt(entry.target.id.replace('cat-', ''));
-          if (!isNaN(idx) && idx !== activeTab) {
-            activeTab = idx; renderTabs();
-            document.querySelectorAll('.tab')[idx]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const idx = parseInt(e.target.id.replace('cat-',''));
+          if (!isNaN(idx) && idx!==activeTab) {
+            activeTab=idx; renderTabs();
+            document.querySelectorAll('.tab')[idx]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
           }
         }
       });
-    }, { rootMargin: '-25% 0px -65% 0px' });
-    menu.forEach((_, i) => { const el = document.getElementById(`cat-${i}`); if (el) observer.observe(el); });
+    }, { rootMargin:'-25% 0px -65% 0px' });
+    menu.forEach((_,i) => { const el=document.getElementById(`cat-${i}`); if(el) obs.observe(el); });
   }
 
-  // ── Cart page ────────────────────────────────────────────────
   function renderCart() {
     const items = Object.values(cart);
     const el = document.getElementById('cartItems');
-    if (!items.length) {
-      el.innerHTML = `<div class="empty-state">Savat bo'sh</div>`;
-      return;
-    }
+    if (!items.length) { el.innerHTML=`<div class="empty-state">Savat bo'sh</div>`; return; }
     el.innerHTML = `
       <p class="page-title">Tanlangan mahsulotlar</p>
       ${items.map(item => {
@@ -480,153 +563,139 @@
           </div>
         </div>`;
       }).join('')}
-      <div class="gold-divider" style="margin-top:4px"></div>
-      <div class="total-row">
-        <span>JAMI</span>
-        <span class="total-amount gold-text">${cartTotal().toLocaleString()} so'm</span>
-      </div>
-      <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">BUYURTMA BERISH →</button>`;
+      <div class="divider" style="margin-top:4px"></div>
+      <div class="total-row"><span>Jami</span><span class="total-amount">${cartTotal().toLocaleString()} so'm</span></div>
+      <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">Buyurtma berish</button>`;
   }
 
-  // ── Orders page ──────────────────────────────────────────────
   function renderOrders() {
-    const saved = JSON.parse(localStorage.getItem('ansor_orders') || '[]');
+    const saved = JSON.parse(localStorage.getItem('ansor_orders')||'[]');
     const el = document.getElementById('ordersList');
-    if (!saved.length) { el.innerHTML = `<div class="empty-state">Buyurtmalar tarixi mavjud emas</div>`; return; }
-    el.innerHTML = saved.slice().reverse().map(o => `
+    if (!saved.length) { el.innerHTML=`<div class="empty-state">Buyurtmalar tarixi yo'q</div>`; return; }
+    el.innerHTML = saved.slice().reverse().map(o=>`
       <div class="order-card">
-        <div class="order-id">BUYURTMA #${o.id}</div>
-        <div class="order-total gold-text">${o.total.toLocaleString()} so'm</div>
+        <div class="order-header">
+          <div class="order-id">Buyurtma #${o.id}</div>
+          <div class="order-total">${o.total.toLocaleString()} so'm</div>
+        </div>
         <div class="order-date">${new Date(o.date).toLocaleString('uz-UZ')}</div>
       </div>`).join('');
   }
 
-  // ── MAP ──────────────────────────────────────────────────────
   function openMap() {
     document.getElementById('mapOverlay').classList.add('open');
-    if (!leafletMap) setTimeout(initMap, 50);
-    else leafletMap.invalidateSize();
+    if (!leafletMap) setTimeout(initMap,50); else leafletMap.invalidateSize();
   }
   function closeMap() { document.getElementById('mapOverlay').classList.remove('open'); }
 
   function initMap() {
-    const defaultLat = 41.2995, defaultLng = 69.2401;
-    leafletMap = L.map('map', { zoomControl: true }).setView([defaultLat, defaultLng], 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19
+    const lat=41.2995, lng=69.2401;
+    leafletMap = L.map('map',{zoomControl:true}).setView([lat,lng],12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+      attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
     }).addTo(leafletMap);
-    const goldIcon = L.divIcon({
-      html: `<div style="width:36px;height:36px;background:linear-gradient(135deg,#8b6914,#f0d080);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #c9a84c;box-shadow:0 2px 8px rgba(201,168,76,0.6)"></div>`,
-      iconSize: [36,36], iconAnchor: [18,36], className: ''
+    const icon = L.divIcon({
+      html:`<div style="width:32px;height:32px;background:var(--green);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+      iconSize:[32,32], iconAnchor:[16,32], className:''
     });
-    leafletMarker = L.marker([defaultLat, defaultLng], { icon: goldIcon, draggable: true });
-    leafletMap.on('click', e => placeMarker(e.latlng.lat, e.latlng.lng));
-    leafletMarker.on('dragend', () => { const p = leafletMarker.getLatLng(); reverseGeocode(p.lat, p.lng); });
-    if (selectedLocation) { placeMarker(selectedLocation.lat, selectedLocation.lng, selectedLocation.address); leafletMap.setView([selectedLocation.lat, selectedLocation.lng], 15); }
+    leafletMarker = L.marker([lat,lng],{icon,draggable:true});
+    leafletMap.on('click', e=>placeMarker(e.latlng.lat,e.latlng.lng));
+    leafletMarker.on('dragend', ()=>{ const p=leafletMarker.getLatLng(); reverseGeocode(p.lat,p.lng); });
+    if (selectedLocation) { placeMarker(selectedLocation.lat,selectedLocation.lng,selectedLocation.address); leafletMap.setView([selectedLocation.lat,selectedLocation.lng],15); }
   }
 
-  function placeMarker(lat, lng, address) {
+  function placeMarker(lat,lng,address) {
     if (!leafletMarker.map) leafletMarker.addTo(leafletMap);
-    leafletMarker.setLatLng([lat, lng]);
-    if (!address) reverseGeocode(lat, lng); else setMapAddr(lat, lng, address);
+    leafletMarker.setLatLng([lat,lng]);
+    if (!address) reverseGeocode(lat,lng); else setMapAddr(lat,lng,address);
   }
 
-  async function reverseGeocode(lat, lng) {
-    document.getElementById('mapAddrText').textContent = '🔄 Manzil aniqlanmoqda...';
+  async function reverseGeocode(lat,lng) {
+    document.getElementById('mapAddrText').textContent='Manzil aniqlanmoqda...';
     try {
       const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=uz`);
       const d = await r.json();
-      setMapAddr(lat, lng, d.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-    } catch { setMapAddr(lat, lng, `${lat.toFixed(5)}, ${lng.toFixed(5)}`); }
+      setMapAddr(lat,lng,d.display_name||`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    } catch { setMapAddr(lat,lng,`${lat.toFixed(5)}, ${lng.toFixed(5)}`); }
   }
 
-  function setMapAddr(lat, lng, address) {
-    document.getElementById('mapAddrText').textContent = address;
-    const btn = document.getElementById('mapConfirmBtn');
-    btn.disabled = false; btn.style.opacity = '1';
-    window._pendingLoc = { lat, lng, address };
+  function setMapAddr(lat,lng,address) {
+    document.getElementById('mapAddrText').textContent=address;
+    const btn=document.getElementById('mapConfirmBtn');
+    btn.disabled=false; btn.style.opacity='1';
+    window._pendingLoc={lat,lng,address};
   }
 
   function confirmLocation() {
     if (!window._pendingLoc) return;
-    selectedLocation = window._pendingLoc;
+    selectedLocation=window._pendingLoc;
     closeMap(); updateLocUI();
   }
 
   function goToMyLocation() {
     navigator.geolocation.getCurrentPosition(
-      pos => { const {latitude:lat, longitude:lng} = pos.coords; leafletMap.setView([lat,lng],16); placeMarker(lat,lng); },
-      () => alert("Lokatsiya aniqlab bo'lmadi")
+      pos=>{ const {latitude:la,longitude:lo}=pos.coords; leafletMap.setView([la,lo],16); placeMarker(la,lo); },
+      ()=>alert("Lokatsiya aniqlab bo'lmadi")
     );
   }
 
   function searchAddress(val) {
     clearTimeout(searchTimeout);
-    if (val.length < 3) return;
-    searchTimeout = setTimeout(async () => {
+    if (val.length<3) return;
+    searchTimeout=setTimeout(async()=>{
       try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&accept-language=uz`);
-        const d = await r.json();
-        if (d.length > 0) { const {lat,lon,display_name} = d[0]; leafletMap.setView([+lat,+lon],15); placeMarker(+lat,+lon,display_name); }
+        const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&accept-language=uz`);
+        const d=await r.json();
+        if (d.length>0) { const {lat,lon,display_name}=d[0]; leafletMap.setView([+lat,+lon],15); placeMarker(+lat,+lon,display_name); }
       } catch {}
-    }, 600);
+    },600);
   }
 
-  // ── Submit ───────────────────────────────────────────────────
   async function submitOrder() {
-    const fn = document.getElementById('fullName').value.trim();
-    const ph = document.getElementById('phone').value.trim();
-    if (!fn || !ph) { alert('Ism va telefon raqamini kiriting!'); return; }
+    const fn=document.getElementById('fullName').value.trim();
+    const ph=document.getElementById('phone').value.trim();
+    if (!fn||!ph) { alert('Ism va telefon raqamini kiriting!'); return; }
     if (!selectedLocation) { alert('Yetkazish manzilini xaritadan tanlang!'); return; }
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = 'YUBORILMOQDA...';
-
+    const btn=document.getElementById('submitBtn');
+    btn.disabled=true; btn.textContent='Yuborilmoqda...';
     try {
-      const res = await fetch(`${API}/orders/`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          telegram_id: tg?.initDataUnsafe?.user?.id || 0,
-          full_name: fn, phone: ph,
-          address: selectedLocation.address,
-          note: document.getElementById('note').value.trim(),
-          latitude: selectedLocation.lat,
-          longitude: selectedLocation.lng,
-          total_price: cartTotal(),
-          items: Object.values(cart).map(i => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.qty }))
+      const res=await fetch(`${API}/orders/`,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          telegram_id: tg?.initDataUnsafe?.user?.id||0,
+          full_name:fn, phone:ph,
+          address:selectedLocation.address,
+          note:document.getElementById('note').value.trim(),
+          latitude:selectedLocation.lat, longitude:selectedLocation.lng,
+          total_price:cartTotal(),
+          items:Object.values(cart).map(i=>({product_id:i.id,name:i.name,price:i.price,quantity:i.qty}))
         })
       });
       if (res.ok) {
-        const data = await res.json();
-        const orders = JSON.parse(localStorage.getItem('ansor_orders') || '[]');
-        orders.push({ id: data.order_id, total: cartTotal(), date: new Date().toISOString() });
-        localStorage.setItem('ansor_orders', JSON.stringify(orders));
-        cart = {}; selectedLocation = null;
-        updateCartUI(); goPage('success');
+        const data=await res.json();
+        const orders=JSON.parse(localStorage.getItem('ansor_orders')||'[]');
+        orders.push({id:data.order_id,total:cartTotal(),date:new Date().toISOString()});
+        localStorage.setItem('ansor_orders',JSON.stringify(orders));
+        cart={}; selectedLocation=null; updateCartUI(); goPage('success');
       } else {
-        alert("Xatolik yuz berdi, qayta urinib ko'ring");
-        btn.disabled = false; btn.textContent = 'TASDIQLASH';
+        alert("Xatolik yuz berdi"); btn.disabled=false; btn.textContent='Tasdiqlash';
       }
-    } catch {
-      alert('Internet bilan muammo');
-      btn.disabled = false; btn.textContent = 'TASDIQLASH';
-    }
+    } catch { alert('Internet bilan muammo'); btn.disabled=false; btn.textContent='Tasdiqlash'; }
   }
 
-  // ── Phone guard ───────────────────────────────────────────────
-  const phoneInput = document.getElementById('phone');
-  const PREFIX = '+998 ';
-  phoneInput.addEventListener('input', () => { if (!phoneInput.value.startsWith(PREFIX)) phoneInput.value = PREFIX; });
-  phoneInput.addEventListener('keydown', e => { if ((e.key==='Backspace'||e.key==='Delete') && phoneInput.value===PREFIX) e.preventDefault(); });
-  phoneInput.addEventListener('focus', () => { if (!phoneInput.value.startsWith(PREFIX)) phoneInput.value = PREFIX; setTimeout(() => phoneInput.setSelectionRange(phoneInput.value.length, phoneInput.value.length), 0); });
+  // Phone guard
+  const phoneInput=document.getElementById('phone');
+  const PREFIX='+998 ';
+  phoneInput.addEventListener('input',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; });
+  phoneInput.addEventListener('keydown',e=>{ if((e.key==='Backspace'||e.key==='Delete')&&phoneInput.value===PREFIX) e.preventDefault(); });
+  phoneInput.addEventListener('focus',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; setTimeout(()=>phoneInput.setSelectionRange(phoneInput.value.length,phoneInput.value.length),0); });
 
-  // ── Load menu ────────────────────────────────────────────────
   async function loadMenu() {
     try {
-      menu = await (await fetch(`${API}/menu/`)).json();
+      menu=await (await fetch(`${API}/menu/`)).json();
       renderTabs(); renderProducts();
     } catch {
-      document.getElementById('products').innerHTML = '<div class="loading" style="color:#c0392b">❌ Menyu yuklanmadi</div>';
+      document.getElementById('products').innerHTML='<div class="empty-state" style="color:#e53935">Menyu yuklanmadi. Internet aloqasini tekshiring.</div>';
     }
   }
   loadMenu();
