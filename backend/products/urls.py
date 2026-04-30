@@ -13,7 +13,7 @@ def menu(request):
     for cat in categories:
         active_products = cat.products.filter(is_active=True)
         if active_products.exists():
-            s = CategorySerializer(cat)
+            s = CategorySerializer(cat, context={'request': request})
             cat_data = s.data
             cat_data['products'] = [
                 {

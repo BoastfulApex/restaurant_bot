@@ -18,6 +18,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ['image_preview', 'name', 'category', 'price_display', 'weight', 'is_active']
+    list_display_links = ['image_preview', 'name']
     list_editable = ['is_active']
     list_filter = ['category', 'is_active']
     search_fields = ['name', 'description']
