@@ -557,7 +557,6 @@ function renderCatStrip() {
       : `<div class="cat-img"><div class="cat-img-placeholder">🥩</div></div>`;
     return `<div class="cat-item ${i===activeTab?'active':''}" onclick="switchTab(${i})">
       ${imgHtml}
-      <span class="cat-label">${cat.name}</span>
     </div>`;
   }).join('');
 }
