@@ -2,303 +2,319 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-  <title>Ansor — Halol Mahsulotlar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Ansor</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
     :root {
-      --gold: #F5A500;
-      --gold-dark: #D48F00;
-      --gold-pale: #FFF8E7;
-      --black: #111111;
-      --card-dark: #2A2A2A;
-      --card-darker: #222222;
-      --white: #ffffff;
-      --bg: #F2F2F2;
-      --gray: #888888;
-      --gray-light: #E0E0E0;
-      --gray-mid: #555555;
-      --nav-h: 65px;
-      --radius: 16px;
-      --header-h: 56px;
+      --yellow: #F5C800;
+      --yellow-dark: #D4A800;
+      --dark: #2A2A2A;
+      --card-bg: #313131;
+      --bg: #F7F7F7;
+      --text-light: #B0B0B0;
+      --white: #FFFFFF;
+      --gray-line: #E8E8E8;
+      --radius: 20px;
+      --nav-h: 72px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--black); min-height: 100vh; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      max-width: 430px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: calc(var(--nav-h) + 16px);
+      color: var(--dark);
+      -webkit-font-smoothing: antialiased;
+    }
 
-    @keyframes fadeUp   { from { opacity:0; transform:translateY(16px) } to { opacity:1; transform:translateY(0) } }
-    @keyframes fadeIn   { from { opacity:0 } to { opacity:1 } }
-    @keyframes slideUp  { from { transform:translateY(100%) } to { transform:translateY(0) } }
-    @keyframes scaleIn  { from { transform:scale(0.92); opacity:0 } to { transform:scale(1); opacity:1 } }
-    @keyframes bounce   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-    @keyframes spin     { to { transform:rotate(360deg) } }
-
-    .anim-fadeup  { animation: fadeUp  .35s cubic-bezier(.25,.8,.25,1) both }
-    .anim-scalein { animation: scaleIn .3s cubic-bezier(.25,.8,.25,1) both }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+    @keyframes slideUp { from { transform:translateY(100%) } to { transform:translateY(0) } }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
 
     /* ── Page system ── */
     .page-wrap { display: none; flex-direction: column; min-height: 100vh; padding-bottom: var(--nav-h); }
     .page-wrap.active { display: flex; animation: fadeIn .2s ease both; }
 
-    /* ── Top header (black) ── */
-    .top-header {
-      position: sticky; top: 0; z-index: 300;
-      background: var(--black);
-      height: var(--header-h);
-      display: flex; align-items: center;
-      padding: 0 16px;
-      gap: 10px;
+    /* ── HEADER ── */
+    .header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px;
+      background: var(--white);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid var(--gray-line);
     }
     .logo-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: #1a1a1a; border: 1.5px solid #333;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      width: 40px; height: 40px;
+      background: #000; border-radius: 10px;
+      overflow: hidden; flex-shrink: 0;
     }
-    .logo-name {
-      font-size: 20px; font-weight: 800; color: var(--white);
-      letter-spacing: 1px; font-style: italic;
-    }
+    .logo-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .logo-text img { height: 24px; object-fit: contain; }
 
-    /* ── Category strip ── */
-    .cat-strip-row {
+    /* ── ADDRESS ── */
+    .address-row {
+      padding: 10px 20px;
       background: var(--white);
-      padding: 12px 16px;
-      display: flex; align-items: center; gap: 12px;
-      border-bottom: 1px solid var(--gray-light);
+      border-bottom: 1px solid var(--gray-line);
     }
-    .cat-strip {
-      display: flex; gap: 12px; overflow-x: auto;
-      scrollbar-width: none; flex: 1;
-      padding-bottom: 2px;
+    .address-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 18px;
+      border: 2px solid #E0E0E0; border-radius: 50px;
+      background: transparent;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      color: var(--dark); cursor: pointer; transition: border-color .2s;
+      white-space: nowrap;
     }
-    .cat-strip::-webkit-scrollbar { display: none; }
-    .cat-chip {
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    .address-btn:active { border-color: var(--yellow); }
+    .addr-text-val { flex: 1; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+
+    /* ── CATEGORIES ── */
+    .categories-row {
+      padding: 12px 20px;
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-line);
+    }
+    .categories {
+      display: flex; align-items: center; gap: 14px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .categories::-webkit-scrollbar { display: none; }
+    .cat-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
       cursor: pointer; flex-shrink: 0; transition: opacity .15s;
     }
-    .cat-chip:active { opacity: .7; }
-    .cat-chip-img {
-      width: 58px; height: 58px; border-radius: 14px; object-fit: cover;
-      background: var(--gray-light);
-      border: 2.5px solid transparent;
-      transition: border-color .2s;
+    .cat-item:active { opacity: .7; }
+    .cat-img {
+      width: 60px; height: 60px; border-radius: 14px; overflow: hidden;
+      background: #eee; border: 2.5px solid transparent; transition: border-color .2s;
     }
-    .cat-chip-img.placeholder {
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
+    .cat-img img { width: 100%; height: 100%; object-fit: cover; }
+    .cat-img-placeholder {
+      width: 100%; height: 100%; display: flex;
+      align-items: center; justify-content: center; font-size: 24px;
     }
-    .cat-chip.active .cat-chip-img { border-color: var(--gold); }
-    .cat-chip-label {
-      font-size: 10px; font-weight: 500; color: var(--gray-mid);
+    .cat-item.active .cat-img { border-color: var(--yellow); }
+    .cat-label {
+      font-size: 11px; font-weight: 600; color: #666;
       text-align: center; max-width: 64px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       transition: color .2s;
     }
-    .cat-chip.active .cat-chip-label { color: var(--gold); font-weight: 600; }
+    .cat-item.active .cat-label { color: var(--yellow); }
 
-    /* Address pill */
-    .addr-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--white); border: 1.5px solid var(--gray-light);
-      border-radius: 20px; padding: 8px 14px;
-      cursor: pointer; white-space: nowrap; flex-shrink: 0;
-      transition: border-color .2s;
+    /* ── PRODUCT SECTIONS ── */
+    .products-wrap { padding: 0 0 16px; flex: 1; }
+    .section { padding: 20px 20px 0; }
+    .section-title {
+      font-family: 'Unbounded', cursive;
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 16px; color: var(--dark);
     }
-    .addr-pill:active { border-color: var(--gold); }
-    .addr-pill-text { font-size: 12px; font-weight: 500; color: var(--black); }
+    .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
-    /* ── Product section ── */
-    .products-wrap { padding: 16px 12px; flex: 1; }
-    .cat-section { margin-bottom: 28px; }
-    .cat-title {
-      font-size: 22px; font-weight: 800; color: var(--black);
-      margin-bottom: 12px; letter-spacing: -0.3px;
-    }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    /* ── Dark product card ── */
-    .card {
-      background: var(--card-dark); border-radius: var(--radius);
+    /* ── PRODUCT CARD ── */
+    .product-card {
+      background: var(--card-bg); border-radius: var(--radius);
       overflow: hidden; display: flex; flex-direction: column;
+      animation: fadeUp .4s ease both;
       transition: transform .15s;
     }
-    .card:active { transform: scale(.97); }
-    .card img { width: 100%; height: 130px; object-fit: cover; display: block; }
-    .card-img-placeholder { width: 100%; height: 130px; background: #3A3A3A; display: flex; align-items: center; justify-content: center; font-size: 36px; }
-    .card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
-    .card-price { font-size: 15px; font-weight: 800; color: var(--gold); }
-    .card-name { font-size: 12px; font-weight: 500; color: #CCCCCC; line-height: 1.3; }
-    .card-weight { font-size: 11px; color: var(--gray); }
-    .card-footer { padding: 0 10px 10px; margin-top: auto; }
-    .btn-add {
-      width: 100%; height: 38px; border-radius: 10px;
-      background: var(--gold); border: none;
-      color: var(--black); font-size: 22px; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background .15s, transform .12s;
+    .product-card:active { transform: scale(.97); }
+    .product-card:nth-child(2) { animation-delay: .07s; }
+    .product-card:nth-child(3) { animation-delay: .14s; }
+    .product-card:nth-child(4) { animation-delay: .21s; }
+    .product-img {
+      width: 100%; aspect-ratio: 1/0.85; object-fit: cover;
+      border-radius: var(--radius) var(--radius) 0 0;
     }
-    .btn-add:active { background: var(--gold-dark); transform: scale(.96); }
-    .qty-row { display: flex; align-items: center; justify-content: space-between; }
+    .product-img-placeholder {
+      width: 100%; aspect-ratio: 1/0.85;
+      display: flex; align-items: center; justify-content: center; font-size: 48px;
+    }
+    .product-info { padding: 12px 14px 0; }
+    .product-price {
+      font-family: 'Unbounded', cursive;
+      font-size: 15px; font-weight: 700;
+      color: var(--yellow); letter-spacing: 0.5px;
+    }
+    .product-name { font-size: 13px; font-weight: 600; color: var(--white); margin-top: 4px; }
+    .product-weight { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .add-btn {
+      margin: 12px 14px 14px;
+      width: calc(100% - 28px); height: 44px;
+      background: var(--yellow); border: none; border-radius: 12px;
+      font-size: 22px; font-weight: 700; color: var(--dark);
+      cursor: pointer; transition: background .15s, transform .1s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .add-btn:active { background: var(--yellow-dark); transform: scale(.97); }
+    .qty-row {
+      margin: 12px 14px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
     .btn-qty {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: var(--gold); border: none; color: var(--black);
-      font-size: 20px; font-weight: 700; cursor: pointer;
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--yellow); border: none; color: var(--dark);
+      font-size: 22px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background .12s;
     }
-    .btn-qty:active { background: var(--gold-dark); }
-    .qty-num { font-size: 15px; font-weight: 700; color: var(--white); }
+    .btn-qty:active { background: var(--yellow-dark); }
+    .qty-num { font-size: 16px; font-weight: 700; color: var(--white); }
 
-    /* ── Bottom nav ── */
+    /* ── BOTTOM NAV ── */
     .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
       height: var(--nav-h);
-      background: var(--white);
-      border-top: 1px solid var(--gray-light);
-      display: flex;
+      background: var(--white); border-top: 1px solid var(--gray-line);
+      display: flex; align-items: center; justify-content: space-around;
+      z-index: 200;
     }
     .nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 3px; cursor: pointer; padding: 6px 0; position: relative;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; flex: 1; position: relative;
     }
     .nav-item:active { opacity: .6; }
-    .nav-label { font-size: 10px; font-weight: 500; color: var(--gray); transition: color .2s; }
-    .nav-item.active .nav-label { color: var(--gold); }
-    .nav-icon { transition: opacity .2s; }
-    .nav-item .nav-icon .icon-gold { display: none; }
-    .nav-item .nav-icon .icon-gray { display: block; }
-    .nav-item.active .nav-icon .icon-gold { display: block; }
-    .nav-item.active .nav-icon .icon-gray { display: none; }
+    .nav-label { font-size: 11px; font-weight: 600; color: #999; }
+    .nav-item.active .nav-label { color: var(--yellow); }
     .nav-badge {
-      position: absolute; top: 4px; right: calc(50% - 18px);
-      background: var(--gold); color: var(--black);
+      position: absolute; top: 0; right: calc(50% - 20px);
+      background: var(--yellow); color: var(--dark);
       border-radius: 10px; font-size: 9px; font-weight: 800;
       padding: 1px 5px; display: none; min-width: 17px; text-align: center;
     }
 
-    /* ── Back header ── */
+    /* ── BACK HEADER ── */
     .back-header {
-      position: sticky; top: 0; z-index: 300;
-      background: var(--black);
-      padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
-      height: var(--header-h); flex-shrink: 0;
+      position: sticky; top: 0; z-index: 100;
+      background: var(--white); border-bottom: 1px solid var(--gray-line);
+      padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
+      height: 56px; flex-shrink: 0;
     }
     .back-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; }
-    .back-title { font-size: 16px; font-weight: 700; color: var(--white); }
+    .back-title { font-family: 'Unbounded', cursive; font-size: 16px; font-weight: 700; color: var(--dark); }
 
-    /* ── Inner pages ── */
-    .inner-page { padding: 16px; flex: 1; background: var(--bg); }
-    .page-title { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-light); }
+    /* ── INNER PAGE ── */
+    .inner-page { padding: 16px 20px; flex: 1; background: var(--bg); }
+    .page-title { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--gray-line); }
 
-    /* ── Cart ── */
-    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gray-light); animation: fadeUp .25s ease both; }
-    .cart-item-name { font-size: 13px; font-weight: 600; color: var(--black); }
-    .cart-item-price { font-size: 12px; color: var(--gold); margin-top: 3px; font-weight: 600; }
-    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-size: 14px; font-weight: 600; border-top: 2px solid var(--gray-light); margin-top: 8px; color: var(--black); }
-    .total-amount { font-size: 18px; font-weight: 800; color: var(--black); }
+    /* ── CART ── */
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--gray-line); animation: fadeUp .25s ease both; }
+    .cart-item-name { font-size: 13px; font-weight: 600; color: var(--dark); }
+    .cart-item-price { font-size: 12px; color: var(--yellow-dark); margin-top: 3px; font-weight: 600; }
+    .cart-qty-row { display: flex; align-items: center; gap: 8px; }
+    .cart-btn-qty { width: 32px; height: 32px; border-radius: 10px; background: var(--yellow); border: none; color: var(--dark); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .cart-btn-qty:active { background: var(--yellow-dark); }
+    .cart-qty-num { font-size: 14px; font-weight: 700; color: var(--dark); min-width: 20px; text-align: center; }
+    .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-size: 14px; font-weight: 600; border-top: 2px solid var(--gray-line); margin-top: 8px; }
+    .total-amount { font-family: 'Unbounded', cursive; font-size: 16px; font-weight: 700; color: var(--dark); }
 
-    /* ── Form ── */
+    /* ── FORM ── */
     .form-group { margin-bottom: 14px; }
-    .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    .form-label { display: block; font-size: 11px; font-weight: 600; color: #999; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
     input, textarea {
-      width: 100%; background: var(--white); border: 1.5px solid var(--gray-light);
-      border-radius: 12px; color: var(--black); padding: 13px 14px;
+      width: 100%; background: var(--white); border: 1.5px solid var(--gray-line);
+      border-radius: 12px; color: var(--dark); padding: 13px 14px;
       font-family: 'Inter', sans-serif; font-size: 15px; outline: none;
-      transition: border-color .2s, box-shadow .2s; -webkit-appearance: none; appearance: none;
+      transition: border-color .2s; -webkit-appearance: none; appearance: none;
     }
-    input:focus, textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-pale); }
+    input:focus, textarea:focus { border-color: var(--yellow); }
     input::placeholder, textarea::placeholder { color: #bdbdbd; }
     textarea { height: 80px; resize: none; }
-    .divider { height: 1px; background: var(--gray-light); margin: 12px 0; }
+    .divider { height: 1px; background: var(--gray-line); margin: 12px 0; }
     .btn-main {
-      width: 100%; background: var(--gold); border: none; border-radius: 14px;
-      color: var(--black); padding: 15px; font-family: 'Inter', sans-serif;
-      font-size: 14px; font-weight: 700; letter-spacing: .3px;
+      width: 100%; background: var(--yellow); border: none; border-radius: 14px;
+      color: var(--dark); padding: 15px;
+      font-family: 'Unbounded', cursive; font-size: 13px; font-weight: 700;
       cursor: pointer; transition: background .2s, transform .15s; margin-top: 8px;
     }
     .btn-main:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-main:active:not(:disabled) { background: var(--gold-dark); transform: scale(.98); }
+    .btn-main:active:not(:disabled) { background: var(--yellow-dark); transform: scale(.98); }
     .btn-outline {
-      width: 100%; background: transparent; border: 1.5px solid var(--gold);
-      border-radius: 14px; color: var(--gold); padding: 13px;
+      width: 100%; background: transparent; border: 2px solid var(--yellow);
+      border-radius: 14px; color: var(--dark); padding: 13px;
       font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
       cursor: pointer; transition: background .2s; margin-top: 8px;
     }
-    .btn-outline:active { background: var(--gold-pale); }
+    .btn-outline:active { background: #fff8cc; }
 
-    /* ── Loc pill ── */
-    .loc-pill { display: flex; align-items: center; gap: 10px; background: var(--gold-pale); border: 1.5px solid var(--gold); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; }
-    .loc-pill-text { font-size: 13px; color: var(--black); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-    .loc-pill-edit { font-size: 11px; color: var(--gold-dark); font-weight: 600; white-space: nowrap; }
+    /* ── LOC PILL ── */
+    .loc-pill { display: flex; align-items: center; gap: 10px; background: #fff8cc; border: 1.5px solid var(--yellow); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; }
+    .loc-pill-text { font-size: 13px; color: var(--dark); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+    .loc-pill-edit { font-size: 11px; color: var(--yellow-dark); font-weight: 600; white-space: nowrap; }
 
-    /* ── Success ── */
-    .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 32px; text-align: center; gap: 12px; flex: 1; background: var(--bg); animation: scaleIn .4s ease both; }
-    .success-circle { width: 80px; height: 80px; background: var(--gold-pale); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-    .success-title { font-size: 20px; font-weight: 800; color: var(--black); margin-top: 4px; }
-    .success-sub { font-size: 14px; color: var(--gray); line-height: 1.6; }
+    /* ── SUCCESS ── */
+    .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 32px; text-align: center; gap: 12px; flex: 1; background: var(--bg); }
+    .success-circle { width: 80px; height: 80px; background: #fff8cc; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .success-title { font-family: 'Unbounded', cursive; font-size: 18px; font-weight: 700; color: var(--dark); margin-top: 4px; }
+    .success-sub { font-size: 14px; color: #777; line-height: 1.6; }
 
-    /* ── Orders ── */
-    .order-card { background: var(--white); border: 1px solid var(--gray-light); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); animation: fadeUp .25s ease both; }
+    /* ── ORDERS ── */
+    .order-card { background: var(--white); border: 1px solid var(--gray-line); border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.04); animation: fadeUp .25s ease both; }
     .order-header { display: flex; justify-content: space-between; align-items: center; }
-    .order-id { font-size: 13px; font-weight: 600; color: var(--black); }
-    .order-total { font-size: 15px; font-weight: 700; color: var(--gold-dark); }
-    .order-date { font-size: 12px; color: var(--gray); margin-top: 6px; }
+    .order-id { font-size: 13px; font-weight: 600; color: var(--dark); }
+    .order-total { font-family: 'Unbounded', cursive; font-size: 13px; font-weight: 700; color: var(--yellow-dark); }
+    .order-date { font-size: 12px; color: #999; margin-top: 6px; }
 
-    /* ── Map ── */
+    /* ── MAP ── */
     .map-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,.5); display: none; flex-direction: column; }
     .map-overlay.open { display: flex; }
     .map-sheet { position: absolute; bottom: 0; left: 0; right: 0; height: 92vh; background: var(--white); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; animation: slideUp .35s cubic-bezier(.25,.8,.25,1); }
-    .map-handle { width: 36px; height: 4px; background: var(--gray-light); border-radius: 2px; margin: 10px auto 0; }
-    .map-handle-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid var(--gray-light); }
-    .map-title { font-size: 15px; font-weight: 600; color: var(--black); }
+    .map-handle { width: 36px; height: 4px; background: var(--gray-line); border-radius: 2px; margin: 10px auto 0; }
+    .map-handle-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 10px; border-bottom: 1px solid var(--gray-line); }
+    .map-title { font-size: 15px; font-weight: 600; color: var(--dark); }
     .map-close { background: none; border: none; cursor: pointer; padding: 4px; display: flex; }
     #map { flex: 1; width: 100%; }
-    .map-search-wrap { padding: 10px 12px; border-bottom: 1px solid var(--gray-light); }
-    .map-search { width: 100%; background: var(--bg); border: 1px solid var(--gray-light); border-radius: 10px; color: var(--black); padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; }
-    .map-search:focus { border-color: var(--gold); }
+    .map-search-wrap { padding: 10px 12px; border-bottom: 1px solid var(--gray-line); }
+    .map-search { width: 100%; background: var(--bg); border: 1px solid var(--gray-line); border-radius: 10px; color: var(--dark); padding: 10px 14px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; }
+    .map-search:focus { border-color: var(--yellow); }
     .map-search::placeholder { color: #bdbdbd; }
-    .map-footer { padding: 12px 16px; border-top: 1px solid var(--gray-light); background: var(--white); }
-    .map-selected-addr { font-size: 13px; color: var(--gray); margin-bottom: 10px; min-height: 18px; text-align: center; }
-    .map-btn-myloc { position: absolute; bottom: 130px; right: 12px; z-index: 600; width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-light); color: var(--gold); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+    .map-footer { padding: 12px 16px; border-top: 1px solid var(--gray-line); background: var(--white); }
+    .map-selected-addr { font-size: 13px; color: #777; margin-bottom: 10px; min-height: 18px; text-align: center; }
+    .map-btn-myloc { position: absolute; bottom: 130px; right: 12px; z-index: 600; width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-line); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 
-    /* ── Misc ── */
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); font-size: 14px; }
+    /* ── MISC ── */
+    .empty-state { text-align: center; padding: 60px 20px; color: #999; font-size: 14px; }
     .loading { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 60px 20px; }
-    .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: bounce 1s infinite; }
+    .loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--yellow); animation: bounce 1s infinite; }
     .loading-dot:nth-child(2) { animation-delay: .15s; }
     .loading-dot:nth-child(3) { animation-delay: .3s; }
   </style>
 </head>
 <body>
 
-<!-- ══ MENU ═══════════════════════════════════════════════════ -->
+<!-- ══ MENU ══ -->
 <div id="menuPage" class="page-wrap active">
-  <div class="top-header">
+  <header class="header">
     <div class="logo-icon">
-      <!-- Golden bull SVG -->
-      <svg width="26" height="26" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 14c0-2 1-4 3-5L7 6l3 2c1-1 3-2 5-2h10c2 0 4 1 5 2l3-2-2 3c2 1 3 3 3 5v4c0 5-4 9-10 10v3h2v2H14v-2h2v-3C10 27 6 23 6 18v-4z" fill="#F5A500"/>
-        <ellipse cx="15" cy="19" rx="2" ry="2" fill="#1a1a1a"/>
-        <ellipse cx="25" cy="19" rx="2" ry="2" fill="#1a1a1a"/>
-        <path d="M17 23c0 0 1.5 2 3 2s3-2 3-2" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M9 14c-2 0-3-2-2-4 1-1 3-1 4 1" fill="#F5A500"/>
-        <path d="M31 14c2 0 3-2 2-4-1-1-3-1-4 1" fill="#F5A500"/>
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/wAARCAGQAZADASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAYHBAUIAwIJAf/EAEUQAAEDAwIEBAMGBQIDBQkAAAEAAgMEBREGIQcSMUETIlFhFDJxCCNCUoGRFRahscEzYiRy0TVTstLwCTRjZXWConditions/9k=" alt="logo"/>
+    </div>
+    <div class="logo-text">
+      <svg width="90" height="22" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="22" font-family="Georgia,serif" font-size="24" font-weight="900" fill="#1a1a1a" letter-spacing="2">ANSOR</text>
       </svg>
     </div>
-    <span class="logo-name">ANSOR</span>
-    <div style="flex:1"></div>
+  </header>
+
+  <div class="address-row">
+    <button class="address-btn" onclick="openMap()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="addr-text-val" id="addrBtnText">Manzilni belgilash</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="#2A2A2A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </div>
 
-  <div class="cat-strip-row">
-    <div class="cat-strip" id="catStrip"></div>
-    <div class="addr-pill" onclick="openMap()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <span class="addr-pill-text" id="addrPillText">Manzilni belgilash</span>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
+  <div class="categories-row">
+    <div class="categories" id="catStrip"></div>
   </div>
 
   <div class="products-wrap" id="products">
@@ -310,7 +326,7 @@
   </div>
 </div>
 
-<!-- ══ CART ════════════════════════════════════════════════════ -->
+<!-- ══ CART ══ -->
 <div id="cartPage" class="page-wrap">
   <div class="back-header">
     <span style="width:32px"></span>
@@ -320,11 +336,11 @@
   <div class="inner-page" id="cartItems"></div>
 </div>
 
-<!-- ══ ORDERS ══════════════════════════════════════════════════ -->
+<!-- ══ ORDERS ══ -->
 <div id="ordersPage" class="page-wrap">
   <div class="back-header">
     <span style="width:32px"></span>
-    <span class="back-title">Buyurtmalarim</span>
+    <span class="back-title">Buyurtmalar</span>
     <span style="width:32px"></span>
   </div>
   <div class="inner-page" id="ordersList">
@@ -332,11 +348,11 @@
   </div>
 </div>
 
-<!-- ══ FORM ════════════════════════════════════════════════════ -->
+<!-- ══ FORM ══ -->
 <div id="formPage" class="page-wrap">
   <div class="back-header">
     <button class="back-btn" onclick="goPage('cart')">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2A2A2A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <span class="back-title">Buyurtma</span>
     <span style="width:32px"></span>
@@ -358,7 +374,7 @@
       </div>
       <div id="locSelected" style="display:none">
         <div class="loc-pill" onclick="openMap()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span class="loc-pill-text" id="locAddress">Manzil aniqlandi</span>
           <span class="loc-pill-edit">O'zgartirish</span>
         </div>
@@ -377,13 +393,11 @@
   </div>
 </div>
 
-<!-- ══ SUCCESS ═════════════════════════════════════════════════ -->
+<!-- ══ SUCCESS ══ -->
 <div id="successPage" class="page-wrap">
   <div class="success-wrap">
     <div class="success-circle">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20 6 9 17 4 12"/>
-      </svg>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#D4A800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <div class="success-title">Buyurtma qabul qilindi!</div>
     <div class="success-sub">Tez orada siz bilan bog'lanamiz.<br>Rahmat!</div>
@@ -391,14 +405,14 @@
   </div>
 </div>
 
-<!-- ══ MAP ═════════════════════════════════════════════════════ -->
+<!-- ══ MAP ══ -->
 <div class="map-overlay" id="mapOverlay">
   <div class="map-sheet">
     <div class="map-handle"></div>
     <div class="map-handle-bar">
       <span class="map-title">Manzilni tanlang</span>
       <button class="map-close" onclick="closeMap()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="map-search-wrap">
@@ -406,7 +420,7 @@
     </div>
     <div id="map"></div>
     <button class="map-btn-myloc" onclick="goToMyLocation()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D4A800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
     </button>
     <div class="map-footer">
       <div class="map-selected-addr" id="mapAddrText">Xaritada kerakli joyni bosing</div>
@@ -415,61 +429,50 @@
   </div>
 </div>
 
-<!-- ══ BOTTOM NAV ══════════════════════════════════════════════ -->
+<!-- ══ BOTTOM NAV ══ -->
 <nav class="bottom-nav">
-  <!-- Asosiy -->
   <div class="nav-item active" id="nav-menu" onclick="goPage('menu')">
-    <div class="nav-icon">
-      <!-- gold (active) -->
-      <svg class="icon-gold" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="#F5A500"/>
+    <div style="position:relative">
+      <svg id="ico-menu-active" width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M4 12L14 4L24 12V24H18V18H10V24H4V12Z" fill="#F5C800"/>
       </svg>
-      <!-- gray (inactive) -->
-      <svg class="icon-gray" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="#888888"/>
+      <svg id="ico-menu-gray" width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:none">
+        <path d="M4 12L14 4L24 12V24H18V18H10V24H4V12Z" fill="#999"/>
       </svg>
     </div>
-    <span class="nav-label">Asosiy</span>
+    <span class="nav-label" style="color:var(--yellow)">Asosiy</span>
   </div>
 
-  <!-- Savat -->
   <div class="nav-item" id="nav-cart" onclick="goPage('cart')">
-    <div class="nav-icon" style="position:relative">
-      <svg class="icon-gold" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" fill="#F5A500" opacity=".2" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <line x1="3" y1="6" x2="21" y2="6" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M16 10a4 4 0 01-8 0" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="18" cy="5" r="4" fill="#F5A500"/>
-        <line x1="18" y1="3" x2="18" y2="7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="16" y1="5" x2="20" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    <div style="position:relative">
+      <svg id="ico-cart-active" width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:none">
+        <path d="M3 4H6L7.5 12M7.5 12L9.5 20H22L24 12H7.5Z" stroke="#F5C800" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="11" cy="23" r="1.5" fill="#F5C800"/>
+        <circle cx="20" cy="23" r="1.5" fill="#F5C800"/>
+        <circle cx="22" cy="8" r="6" fill="white" stroke="#eee" stroke-width="1"/>
+        <path d="M22 5.5V10.5M19.5 8H24.5" stroke="#F5C800" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
-      <svg class="icon-gray" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" fill="#888" opacity=".15" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <line x1="3" y1="6" x2="21" y2="6" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M16 10a4 4 0 01-8 0" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="18" cy="5" r="4" fill="#888"/>
-        <line x1="18" y1="3" x2="18" y2="7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="16" y1="5" x2="20" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <svg id="ico-cart-gray" width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M3 4H6L7.5 12M7.5 12L9.5 20H22L24 12H7.5Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="11" cy="23" r="1.5" fill="#999"/>
+        <circle cx="20" cy="23" r="1.5" fill="#999"/>
+        <circle cx="22" cy="8" r="6" fill="white" stroke="#eee" stroke-width="1"/>
+        <path d="M22 5.5V10.5M19.5 8H24.5" stroke="#999" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
       <span class="nav-badge" id="cartBadge">0</span>
     </div>
     <span class="nav-label">Savat</span>
   </div>
 
-  <!-- Buyurtmalar -->
   <div class="nav-item" id="nav-orders" onclick="goPage('orders')">
-    <div class="nav-icon">
-      <svg class="icon-gold" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="4" y="2" width="16" height="20" rx="2" fill="#F5A500" opacity=".2" stroke="#F5A500" stroke-width="1.5"/>
-        <line x1="8" y1="8" x2="16" y2="8" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="8" y1="12" x2="16" y2="12" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="8" y1="16" x2="12" y2="16" stroke="#F5A500" stroke-width="1.5" stroke-linecap="round"/>
+    <div style="position:relative">
+      <svg id="ico-ord-active" width="28" height="28" viewBox="0 0 28 28" fill="none" style="display:none">
+        <rect x="6" y="3" width="16" height="22" rx="3" stroke="#F5C800" stroke-width="2"/>
+        <path d="M10 9H18M10 13H18M10 17H15" stroke="#F5C800" stroke-width="2" stroke-linecap="round"/>
       </svg>
-      <svg class="icon-gray" width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="4" y="2" width="16" height="20" rx="2" fill="#888" opacity=".15" stroke="#888" stroke-width="1.5"/>
-        <line x1="8" y1="8" x2="16" y2="8" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="8" y1="12" x2="16" y2="12" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-        <line x1="8" y1="16" x2="12" y2="16" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
+      <svg id="ico-ord-gray" width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <rect x="6" y="3" width="16" height="22" rx="3" stroke="#999" stroke-width="2"/>
+        <path d="M10 9H18M10 13H18M10 17H15" stroke="#999" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
     <span class="nav-label">Buyurtmalar</span>
@@ -477,287 +480,302 @@
 </nav>
 
 <script>
-  const API = 'https://admin.ansortushenka.uz/api';
-  const tg = window.Telegram?.WebApp;
-  if (tg) { tg.ready(); tg.expand(); tg.enableClosingConfirmation(); }
+const API = 'https://admin.ansortushenka.uz/api';
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); tg.enableClosingConfirmation(); }
 
-  let menu = [], cart = {}, activeTab = 0;
-  let selectedLocation = null;
-  let leafletMap = null, leafletMarker = null;
-  let searchTimeout = null;
+let menu = [], cart = {}, activeTab = 0;
+let selectedLocation = null;
+let leafletMap = null, leafletMarker = null, searchTimeout = null;
 
-  const cartTotal = () => Object.values(cart).reduce((s,i) => s + i.price * i.qty, 0);
-  const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
+const cartTotal = () => Object.values(cart).reduce((s,i) => s + i.price * i.qty, 0);
+const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
-  function addToCart(p) {
-    cart[p.id] ? cart[p.id].qty++ : (cart[p.id] = {...p, qty:1});
-    updateCartUI(); renderProducts();
+function addToCart(p) {
+  cart[p.id] ? cart[p.id].qty++ : (cart[p.id] = {...p, qty:1});
+  updateCartUI(); renderProducts();
+}
+function removeFromCart(id) {
+  if (!cart[id]) return;
+  if (--cart[id].qty === 0) delete cart[id];
+  updateCartUI(); renderProducts();
+}
+function updateCartUI() {
+  const c = cartCount(), badge = document.getElementById('cartBadge');
+  badge.style.display = c > 0 ? 'block' : 'none';
+  badge.textContent = c;
+}
+
+function setNavActive(name) {
+  ['menu','cart','orders'].forEach(n => {
+    const el = document.getElementById('nav-'+n);
+    const isActive = n === name;
+    el.classList.toggle('active', isActive);
+    el.querySelector('.nav-label').style.color = isActive ? 'var(--yellow)' : '#999';
+  });
+  // icons
+  const pairs = [['menu','ico-menu'],['cart','ico-cart'],['orders','ico-ord']];
+  pairs.forEach(([n,id]) => {
+    const isActive = n === name;
+    const a = document.getElementById(id+'-active');
+    const g = document.getElementById(id+'-gray');
+    if (a) a.style.display = isActive ? 'block' : 'none';
+    if (g) g.style.display = isActive ? 'none' : 'block';
+  });
+}
+
+function goPage(name) {
+  ['menu','cart','orders','form','success'].forEach(p => {
+    document.getElementById(p+'Page')?.classList.toggle('active', p===name);
+  });
+  if (['menu','cart','orders'].includes(name)) setNavActive(name);
+  if (name==='cart') renderCart();
+  if (name==='orders') renderOrders();
+  if (name==='form') {
+    document.getElementById('formTotal').textContent = cartTotal().toLocaleString() + " so'm";
+    updateLocUI();
+    setTimeout(() => document.getElementById('fullName').focus(), 300);
   }
-  function removeFromCart(id) {
-    if (!cart[id]) return;
-    if (--cart[id].qty === 0) delete cart[id];
-    updateCartUI(); renderProducts();
-  }
-  function updateCartUI() {
-    const c = cartCount(), badge = document.getElementById('cartBadge');
-    badge.style.display = c > 0 ? 'block' : 'none';
-    badge.textContent = c;
-  }
+  window.scrollTo(0,0);
+}
 
-  function goPage(name) {
-    ['menu','cart','orders','form','success'].forEach(p => {
-      document.getElementById(p+'Page')?.classList.toggle('active', p===name);
-    });
-    ['menu','cart','orders'].forEach(n => {
-      document.getElementById('nav-'+n)?.classList.toggle('active', n===name);
-    });
-    if (name==='cart') renderCart();
-    if (name==='orders') renderOrders();
-    if (name==='form') {
-      document.getElementById('formTotal').textContent = cartTotal().toLocaleString() + " so'm";
-      updateLocUI();
-      setTimeout(() => document.getElementById('fullName').focus(), 300);
-    }
-    window.scrollTo(0,0);
+function updateLocUI() {
+  const notSel = document.getElementById('locNotSelected');
+  const sel = document.getElementById('locSelected');
+  if (selectedLocation) {
+    notSel.style.display='none'; sel.style.display='block';
+    document.getElementById('locAddress').textContent = selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`;
+  } else {
+    notSel.style.display='block'; sel.style.display='none';
   }
+  const btn = document.getElementById('addrBtnText');
+  if (btn) btn.textContent = selectedLocation ? (selectedLocation.address?.split(',')[0] || 'Manzil tanlandi') : 'Manzilni belgilash';
+}
 
-  function updateLocUI() {
-    const notSel = document.getElementById('locNotSelected');
-    const sel = document.getElementById('locSelected');
-    if (selectedLocation) {
-      notSel.style.display='none'; sel.style.display='block';
-      document.getElementById('locAddress').textContent = selectedLocation.address || `${selectedLocation.lat.toFixed(5)}, ${selectedLocation.lng.toFixed(5)}`;
-    } else {
-      notSel.style.display='block'; sel.style.display='none';
-    }
-    const pill = document.getElementById('addrPillText');
-    if (pill) pill.textContent = selectedLocation ? (selectedLocation.address?.split(',')[0] || 'Manzil tanlandi') : 'Manzilni belgilash';
-  }
-
-  function renderCatStrip() {
-    document.getElementById('catStrip').innerHTML = menu.map((cat, i) => {
-      const imgHtml = cat.image
-        ? `<img class="cat-chip-img" src="${cat.image}" alt="${cat.name}" loading="lazy"/>`
-        : `<div class="cat-chip-img placeholder">🥩</div>`;
-      return `<div class="cat-chip ${i===activeTab?'active':''}" onclick="switchTab(${i})">
-        ${imgHtml}
-        <span class="cat-chip-label">${cat.name}</span>
-      </div>`;
-    }).join('');
-  }
-
-  function productCard(p) {
-    const qty = cart[p.id]?.qty || 0;
-    const safe = JSON.stringify(p).replace(/"/g,'&quot;');
-    const imgHtml = p.image
-      ? `<img src="${p.image}" alt="${p.name}" loading="lazy"/>`
-      : `<div class="card-img-placeholder">🥩</div>`;
-    const ctrl = qty===0
-      ? `<button class="btn-add" onclick="addToCart(${safe})">+</button>`
-      : `<div class="qty-row">
-           <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
-           <span class="qty-num">${qty}</span>
-           <button class="btn-qty" onclick="addToCart(${safe})">+</button>
-         </div>`;
-    return `<div class="card anim-scalein" id="product-${p.id}">
+function renderCatStrip() {
+  document.getElementById('catStrip').innerHTML = menu.map((cat, i) => {
+    const imgHtml = cat.image
+      ? `<div class="cat-img"><img src="${cat.image}" alt="${cat.name}" loading="lazy"/></div>`
+      : `<div class="cat-img"><div class="cat-img-placeholder">🥩</div></div>`;
+    return `<div class="cat-item ${i===activeTab?'active':''}" onclick="switchTab(${i})">
       ${imgHtml}
-      <div class="card-body">
-        <div class="card-price">${p.price.toLocaleString()} UZS</div>
-        <div class="card-name">${p.name}</div>
-        ${p.weight ? `<div class="card-weight">${p.weight}</div>` : ''}
-      </div>
-      <div class="card-footer">${ctrl}</div>
+      <span class="cat-label">${cat.name}</span>
     </div>`;
-  }
+  }).join('');
+}
 
-  function renderProducts() {
-    if (!menu.length) return;
-    document.getElementById('products').innerHTML = menu.map((cat,i) =>
-      `<div class="cat-section anim-fadeup" id="cat-${i}" style="animation-delay:${i*0.05}s">
-        <div class="cat-title">${cat.name}</div>
-        <div class="grid">${cat.products.map(p=>productCard(p)).join('')}</div>
-      </div>`
-    ).join('');
-    initScrollSpy();
-  }
+function productCard(p) {
+  const qty = cart[p.id]?.qty || 0;
+  const safe = JSON.stringify(p).replace(/"/g,'&quot;');
+  const imgHtml = p.image
+    ? `<img class="product-img" src="${p.image}" alt="${p.name}" loading="lazy"/>`
+    : `<div class="product-img-placeholder">🥩</div>`;
+  const ctrl = qty === 0
+    ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
+    : `<div class="qty-row">
+         <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
+         <span class="qty-num">${qty}</span>
+         <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+       </div>`;
+  return `<div class="product-card" id="product-${p.id}">
+    ${imgHtml}
+    <div class="product-info">
+      <div class="product-price">${p.price.toLocaleString()} UZS</div>
+      <div class="product-name">${p.name}</div>
+      ${p.weight ? `<div class="product-weight">${p.weight}</div>` : ''}
+    </div>
+    ${ctrl}
+  </div>`;
+}
 
-  function switchTab(i) {
-    activeTab=i; renderCatStrip();
-    const el = document.getElementById(`cat-${i}`);
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 145, behavior:'smooth' });
-  }
+function renderProducts() {
+  if (!menu.length) return;
+  document.getElementById('products').innerHTML = menu.map((cat,i) =>
+    `<section class="section" id="cat-${i}" style="animation-delay:${i*0.05}s">
+      <h2 class="section-title">${cat.name}</h2>
+      <div class="product-grid">${cat.products.map(p=>productCard(p)).join('')}</div>
+    </section>`
+  ).join('');
+  initScrollSpy();
+}
 
-  function initScrollSpy() {
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          const idx = parseInt(e.target.id.replace('cat-',''));
-          if (!isNaN(idx) && idx!==activeTab) {
-            activeTab=idx; renderCatStrip();
-            document.querySelectorAll('.cat-chip')[idx]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
-          }
+function switchTab(i) {
+  activeTab=i; renderCatStrip();
+  const el = document.getElementById(`cat-${i}`);
+  if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 180, behavior:'smooth' });
+}
+
+function initScrollSpy() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = parseInt(e.target.id.replace('cat-',''));
+        if (!isNaN(idx) && idx !== activeTab) {
+          activeTab = idx; renderCatStrip();
+          document.querySelectorAll('.cat-item')[idx]?.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
         }
-      });
-    }, { rootMargin:'-25% 0px -65% 0px' });
-    menu.forEach((_,i) => { const el=document.getElementById(`cat-${i}`); if(el) obs.observe(el); });
-  }
-
-  function renderCart() {
-    const items = Object.values(cart);
-    const el = document.getElementById('cartItems');
-    if (!items.length) { el.innerHTML=`<div class="empty-state">Savat bo'sh</div>`; return; }
-    el.innerHTML = `
-      <p class="page-title">Tanlangan mahsulotlar</p>
-      ${items.map(item => {
-        const safe = JSON.stringify(item).replace(/"/g,'&quot;');
-        return `<div class="cart-item">
-          <div>
-            <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">${(item.price*item.qty).toLocaleString()} so'm</div>
-          </div>
-          <div class="qty-row">
-            <button class="btn-qty" style="width:32px;height:32px" onclick="removeFromCart(${item.id});renderCart()">−</button>
-            <span class="qty-num" style="color:var(--black)">${item.qty}</span>
-            <button class="btn-qty" style="width:32px;height:32px" onclick="addToCart(${safe});renderCart()">+</button>
-          </div>
-        </div>`;
-      }).join('')}
-      <div class="divider" style="margin-top:4px"></div>
-      <div class="total-row"><span>Jami</span><span class="total-amount">${cartTotal().toLocaleString()} so'm</span></div>
-      <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">Buyurtma berish</button>`;
-  }
-
-  function renderOrders() {
-    const saved = JSON.parse(localStorage.getItem('ansor_orders')||'[]');
-    const el = document.getElementById('ordersList');
-    if (!saved.length) { el.innerHTML=`<div class="empty-state">Buyurtmalar tarixi yo'q</div>`; return; }
-    el.innerHTML = saved.slice().reverse().map(o=>`
-      <div class="order-card">
-        <div class="order-header">
-          <div class="order-id">Buyurtma #${o.id}</div>
-          <div class="order-total">${o.total.toLocaleString()} so'm</div>
-        </div>
-        <div class="order-date">${new Date(o.date).toLocaleString('uz-UZ')}</div>
-      </div>`).join('');
-  }
-
-  function openMap() {
-    document.getElementById('mapOverlay').classList.add('open');
-    if (!leafletMap) setTimeout(initMap,50); else leafletMap.invalidateSize();
-  }
-  function closeMap() { document.getElementById('mapOverlay').classList.remove('open'); }
-
-  function initMap() {
-    const lat=41.2995, lng=69.2401;
-    leafletMap = L.map('map',{zoomControl:true}).setView([lat,lng],12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-      attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
-    }).addTo(leafletMap);
-    const icon = L.divIcon({
-      html:`<div style="width:32px;height:32px;background:#F5A500;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
-      iconSize:[32,32], iconAnchor:[16,32], className:''
-    });
-    leafletMarker = L.marker([lat,lng],{icon,draggable:true});
-    leafletMap.on('click', e=>placeMarker(e.latlng.lat,e.latlng.lng));
-    leafletMarker.on('dragend', ()=>{ const p=leafletMarker.getLatLng(); reverseGeocode(p.lat,p.lng); });
-    if (selectedLocation) { placeMarker(selectedLocation.lat,selectedLocation.lng,selectedLocation.address); leafletMap.setView([selectedLocation.lat,selectedLocation.lng],15); }
-  }
-
-  function placeMarker(lat,lng,address) {
-    if (!leafletMarker.map) leafletMarker.addTo(leafletMap);
-    leafletMarker.setLatLng([lat,lng]);
-    if (!address) reverseGeocode(lat,lng); else setMapAddr(lat,lng,address);
-  }
-
-  async function reverseGeocode(lat,lng) {
-    document.getElementById('mapAddrText').textContent='Manzil aniqlanmoqda...';
-    try {
-      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=uz`);
-      const d = await r.json();
-      setMapAddr(lat,lng,d.display_name||`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
-    } catch { setMapAddr(lat,lng,`${lat.toFixed(5)}, ${lng.toFixed(5)}`); }
-  }
-
-  function setMapAddr(lat,lng,address) {
-    document.getElementById('mapAddrText').textContent=address;
-    const btn=document.getElementById('mapConfirmBtn');
-    btn.disabled=false; btn.style.opacity='1';
-    window._pendingLoc={lat,lng,address};
-  }
-
-  function confirmLocation() {
-    if (!window._pendingLoc) return;
-    selectedLocation=window._pendingLoc;
-    closeMap(); updateLocUI();
-  }
-
-  function goToMyLocation() {
-    navigator.geolocation.getCurrentPosition(
-      pos=>{ const {latitude:la,longitude:lo}=pos.coords; leafletMap.setView([la,lo],16); placeMarker(la,lo); },
-      ()=>alert("Lokatsiya aniqlab bo'lmadi")
-    );
-  }
-
-  function searchAddress(val) {
-    clearTimeout(searchTimeout);
-    if (val.length<3) return;
-    searchTimeout=setTimeout(async()=>{
-      try {
-        const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&accept-language=uz`);
-        const d=await r.json();
-        if (d.length>0) { const {lat,lon,display_name}=d[0]; leafletMap.setView([+lat,+lon],15); placeMarker(+lat,+lon,display_name); }
-      } catch {}
-    },600);
-  }
-
-  async function submitOrder() {
-    const fn=document.getElementById('fullName').value.trim();
-    const ph=document.getElementById('phone').value.trim();
-    if (!fn||!ph) { alert('Ism va telefon raqamini kiriting!'); return; }
-    if (!selectedLocation) { alert('Yetkazish manzilini xaritadan tanlang!'); return; }
-    const btn=document.getElementById('submitBtn');
-    btn.disabled=true; btn.textContent='Yuborilmoqda...';
-    try {
-      const res=await fetch(`${API}/orders/`,{
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          telegram_id: tg?.initDataUnsafe?.user?.id||0,
-          full_name:fn, phone:ph,
-          address:selectedLocation.address,
-          note:document.getElementById('note').value.trim(),
-          latitude:selectedLocation.lat, longitude:selectedLocation.lng,
-          total_price:cartTotal(),
-          items:Object.values(cart).map(i=>({product_id:i.id,name:i.name,price:i.price,quantity:i.qty}))
-        })
-      });
-      if (res.ok) {
-        const data=await res.json();
-        const orders=JSON.parse(localStorage.getItem('ansor_orders')||'[]');
-        orders.push({id:data.order_id,total:cartTotal(),date:new Date().toISOString()});
-        localStorage.setItem('ansor_orders',JSON.stringify(orders));
-        cart={}; selectedLocation=null; updateCartUI(); goPage('success');
-      } else {
-        alert("Xatolik yuz berdi"); btn.disabled=false; btn.textContent='Tasdiqlash';
       }
-    } catch { alert('Internet bilan muammo'); btn.disabled=false; btn.textContent='Tasdiqlash'; }
-  }
+    });
+  }, { rootMargin:'-25% 0px -65% 0px' });
+  menu.forEach((_,i) => { const el=document.getElementById(`cat-${i}`); if(el) obs.observe(el); });
+}
 
-  // Phone guard
-  const phoneInput=document.getElementById('phone');
-  const PREFIX='+998 ';
-  phoneInput.addEventListener('input',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; });
-  phoneInput.addEventListener('keydown',e=>{ if((e.key==='Backspace'||e.key==='Delete')&&phoneInput.value===PREFIX) e.preventDefault(); });
-  phoneInput.addEventListener('focus',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; setTimeout(()=>phoneInput.setSelectionRange(phoneInput.value.length,phoneInput.value.length),0); });
+function renderCart() {
+  const items = Object.values(cart);
+  const el = document.getElementById('cartItems');
+  if (!items.length) { el.innerHTML=`<div class="empty-state">Savat bo'sh</div>`; return; }
+  el.innerHTML = `
+    <p class="page-title">Tanlangan mahsulotlar</p>
+    ${items.map(item => {
+      const safe = JSON.stringify(item).replace(/"/g,'&quot;');
+      return `<div class="cart-item">
+        <div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${(item.price*item.qty).toLocaleString()} so'm</div>
+        </div>
+        <div class="cart-qty-row">
+          <button class="cart-btn-qty" onclick="removeFromCart(${item.id});renderCart()">−</button>
+          <span class="cart-qty-num">${item.qty}</span>
+          <button class="cart-btn-qty" onclick="addToCart(${safe});renderCart()">+</button>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="divider" style="margin-top:4px"></div>
+    <div class="total-row"><span>Jami</span><span class="total-amount">${cartTotal().toLocaleString()} so'm</span></div>
+    <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">Buyurtma berish</button>`;
+}
 
-  async function loadMenu() {
+function renderOrders() {
+  const saved = JSON.parse(localStorage.getItem('ansor_orders')||'[]');
+  const el = document.getElementById('ordersList');
+  if (!saved.length) { el.innerHTML=`<div class="empty-state">Buyurtmalar tarixi yo'q</div>`; return; }
+  el.innerHTML = saved.slice().reverse().map(o=>`
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-id">Buyurtma #${o.id}</div>
+        <div class="order-total">${o.total.toLocaleString()} so'm</div>
+      </div>
+      <div class="order-date">${new Date(o.date).toLocaleString('uz-UZ')}</div>
+    </div>`).join('');
+}
+
+function openMap() {
+  document.getElementById('mapOverlay').classList.add('open');
+  if (!leafletMap) setTimeout(initMap,50); else leafletMap.invalidateSize();
+}
+function closeMap() { document.getElementById('mapOverlay').classList.remove('open'); }
+
+function initMap() {
+  const lat=41.2995, lng=69.2401;
+  leafletMap = L.map('map',{zoomControl:true}).setView([lat,lng],12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'© OpenStreetMap © CARTO', subdomains:'abcd', maxZoom:19
+  }).addTo(leafletMap);
+  const icon = L.divIcon({
+    html:`<div style="width:32px;height:32px;background:#F5C800;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)"></div>`,
+    iconSize:[32,32], iconAnchor:[16,32], className:''
+  });
+  leafletMarker = L.marker([lat,lng],{icon,draggable:true});
+  leafletMap.on('click', e=>placeMarker(e.latlng.lat,e.latlng.lng));
+  leafletMarker.on('dragend', ()=>{ const p=leafletMarker.getLatLng(); reverseGeocode(p.lat,p.lng); });
+  if (selectedLocation) { placeMarker(selectedLocation.lat,selectedLocation.lng,selectedLocation.address); leafletMap.setView([selectedLocation.lat,selectedLocation.lng],15); }
+}
+
+function placeMarker(lat,lng,address) {
+  if (!leafletMarker._map) leafletMarker.addTo(leafletMap);
+  leafletMarker.setLatLng([lat,lng]);
+  if (!address) reverseGeocode(lat,lng); else setMapAddr(lat,lng,address);
+}
+
+async function reverseGeocode(lat,lng) {
+  document.getElementById('mapAddrText').textContent='Manzil aniqlanmoqda...';
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=uz`);
+    const d = await r.json();
+    setMapAddr(lat,lng,d.display_name||`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+  } catch { setMapAddr(lat,lng,`${lat.toFixed(5)}, ${lng.toFixed(5)}`); }
+}
+
+function setMapAddr(lat,lng,address) {
+  document.getElementById('mapAddrText').textContent=address;
+  const btn=document.getElementById('mapConfirmBtn');
+  btn.disabled=false; btn.style.opacity='1';
+  window._pendingLoc={lat,lng,address};
+}
+
+function confirmLocation() {
+  if (!window._pendingLoc) return;
+  selectedLocation=window._pendingLoc;
+  closeMap(); updateLocUI();
+}
+
+function goToMyLocation() {
+  navigator.geolocation.getCurrentPosition(
+    pos=>{ const {latitude:la,longitude:lo}=pos.coords; leafletMap.setView([la,lo],16); placeMarker(la,lo); },
+    ()=>alert("Lokatsiya aniqlab bo'lmadi")
+  );
+}
+
+function searchAddress(val) {
+  clearTimeout(searchTimeout);
+  if (val.length<3) return;
+  searchTimeout=setTimeout(async()=>{
     try {
-      menu=await (await fetch(`${API}/menu/`)).json();
-      renderCatStrip(); renderProducts();
-    } catch {
-      document.getElementById('products').innerHTML='<div class="empty-state" style="color:#e53935">Menyu yuklanmadi. Internet aloqasini tekshiring.</div>';
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&limit=1&accept-language=uz`);
+      const d=await r.json();
+      if (d.length>0) { const {lat,lon,display_name}=d[0]; leafletMap.setView([+lat,+lon],15); placeMarker(+lat,+lon,display_name); }
+    } catch {}
+  },600);
+}
+
+async function submitOrder() {
+  const fn=document.getElementById('fullName').value.trim();
+  const ph=document.getElementById('phone').value.trim();
+  if (!fn||!ph) { alert('Ism va telefon raqamini kiriting!'); return; }
+  if (!selectedLocation) { alert('Yetkazish manzilini xaritadan tanlang!'); return; }
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Yuborilmoqda...';
+  try {
+    const res=await fetch(`${API}/orders/`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        telegram_id: tg?.initDataUnsafe?.user?.id||0,
+        full_name:fn, phone:ph,
+        address:selectedLocation.address,
+        note:document.getElementById('note').value.trim(),
+        latitude:selectedLocation.lat, longitude:selectedLocation.lng,
+        total_price:cartTotal(),
+        items:Object.values(cart).map(i=>({product_id:i.id,name:i.name,price:i.price,quantity:i.qty}))
+      })
+    });
+    if (res.ok) {
+      const data=await res.json();
+      const orders=JSON.parse(localStorage.getItem('ansor_orders')||'[]');
+      orders.push({id:data.order_id,total:cartTotal(),date:new Date().toISOString()});
+      localStorage.setItem('ansor_orders',JSON.stringify(orders));
+      cart={}; selectedLocation=null; updateCartUI(); goPage('success');
+    } else {
+      alert("Xatolik yuz berdi"); btn.disabled=false; btn.textContent='Tasdiqlash';
     }
+  } catch { alert('Internet bilan muammo'); btn.disabled=false; btn.textContent='Tasdiqlash'; }
+}
+
+// Phone guard
+const phoneInput=document.getElementById('phone');
+const PREFIX='+998 ';
+phoneInput.addEventListener('input',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; });
+phoneInput.addEventListener('keydown',e=>{ if((e.key==='Backspace'||e.key==='Delete')&&phoneInput.value===PREFIX) e.preventDefault(); });
+phoneInput.addEventListener('focus',()=>{ if(!phoneInput.value.startsWith(PREFIX)) phoneInput.value=PREFIX; setTimeout(()=>phoneInput.setSelectionRange(phoneInput.value.length,phoneInput.value.length),0); });
+
+async function loadMenu() {
+  try {
+    menu=await (await fetch(`${API}/menu/`)).json();
+    renderCatStrip(); renderProducts();
+  } catch {
+    document.getElementById('products').innerHTML='<div class="empty-state" style="color:#e53935">Menyu yuklanmadi. Internet aloqasini tekshiring.</div>';
   }
-  loadMenu();
+}
+loadMenu();
 </script>
 </body>
 </html>
