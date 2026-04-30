@@ -557,6 +557,7 @@ function renderCatStrip() {
       : `<div class="cat-img"><div class="cat-img-placeholder">🥩</div></div>`;
     return `<div class="cat-item ${i===activeTab?'active':''}" onclick="switchTab(${i})">
       ${imgHtml}
+      <span class="cat-label">${cat.name}</span>
     </div>`;
   }).join('');
 }
@@ -579,7 +580,7 @@ function productCard(p) {
     <div class="product-info">
       <div class="product-price">${p.price.toLocaleString()} UZS</div>
       <div class="product-name">${p.name}</div>
-      ${p.weight ? `<div class="product-weight">${p.weight}</div>` : ''}
+      ${p.weight ? `<div class="product-weight">${p.weight} g</div>` : ''}
     </div>
     ${ctrl}
   </div>`;
