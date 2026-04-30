@@ -491,12 +491,31 @@ const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
 function addToCart(p) {
   cart[p.id] ? cart[p.id].qty++ : (cart[p.id] = {...p, qty:1});
-  updateCartUI(); renderProducts();
+  updateCartUI(); updateProductCard(p.id);
 }
 function removeFromCart(id) {
   if (!cart[id]) return;
   if (--cart[id].qty === 0) delete cart[id];
-  updateCartUI(); renderProducts();
+  updateCartUI(); updateProductCard(id);
+}
+
+function updateProductCard(id) {
+  const el = document.getElementById('product-' + id);
+  if (!el) return;
+  const p = menu.flatMap(c => c.products).find(p => p.id === id);
+  if (!p) return;
+  const qty = cart[id]?.qty || 0;
+  const safe = JSON.stringify(p).replace(/"/g,'&quot;');
+  const ctrl = qty === 0
+    ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
+    : `<div class="qty-row">
+         <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
+         <span class="qty-num">${qty}</span>
+         <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+       </div>`;
+  const existing = el.querySelector('.add-btn, .qty-row');
+  if (existing) existing.outerHTML = ctrl;
+  else el.insertAdjacentHTML('beforeend', ctrl);
 }
 function updateCartUI() {
   const c = cartCount(), badge = document.getElementById('cartBadge');
