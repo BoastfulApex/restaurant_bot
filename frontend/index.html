@@ -819,15 +819,19 @@ async function loadMenu() {
 loadMenu();
 
 function copyPhone() {
-  const phone = 'tel:+998944004000';
-  try {
-    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.openLink) {
-      Telegram.WebApp.openLink(phone);
-    } else {
-      location.href = phone;
-    }
-  } catch(e) {
-    location.href = phone;
+  if (window.Telegram && Telegram.WebApp && Telegram.WebApp.showPopup) {
+    Telegram.WebApp.showPopup({
+      title: "Bog'lanish",
+      message: "+998 94 400 40 00",
+      buttons: [
+        { id: 'call', type: 'default', text: "Qo'ng'iroq qilish" },
+        { id: 'cancel', type: 'cancel' }
+      ]
+    }, function(btnId) {
+      if (btnId === 'call') location.href = 'tel:+998944004000';
+    });
+  } else {
+    location.href = 'tel:+998944004000';
   }
 }
 </script>
