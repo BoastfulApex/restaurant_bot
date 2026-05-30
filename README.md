@@ -1,4 +1,4 @@
-# 🍽 Aksu Restaurant — Telegram Mini App
+# Ansor Tushenka - Telegram Mini App
 
 ## Loyiha strukturasi
 ```
