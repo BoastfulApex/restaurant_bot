@@ -34,4 +34,5 @@ class Product(models.Model):
         verbose_name_plural = "Mahsulotlar"
 
     def __str__(self):
-        return f"{self.name} — {self.price:,} so'm"
+        price = self.price if self.price is not None else 0
+        return f"{self.name} — {price:,} so'm"
