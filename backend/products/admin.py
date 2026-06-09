@@ -49,6 +49,8 @@ class ProductAdmin(admin.ModelAdmin):
     image_preview_large.short_description = "Rasm ko'rinishi"
 
     def price_display(self, obj):
+        if obj.price is None:
+            return '—'
         return format_html('<b style="color:#f39c12">{} so\'m</b>', f"{obj.price:,}")
     price_display.short_description = "Narxi"
     price_display.admin_order_field = 'price'
