@@ -26,12 +26,14 @@ class Product(models.Model):
     price = models.PositiveIntegerField(null=True, blank=True, verbose_name="Narxi (so'm)")
     image = models.ImageField(upload_to='products/', blank=True, verbose_name="Rasm")
     weight = models.CharField(max_length=50, blank=True, verbose_name="Og'irligi")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Mahsulot"
         verbose_name_plural = "Mahsulotlar"
+        ordering = ['order']
 
     def __str__(self):
         price = self.price if self.price is not None else 0

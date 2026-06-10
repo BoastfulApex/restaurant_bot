@@ -17,16 +17,17 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['image_preview', 'name', 'category', 'price_display', 'weight', 'is_active']
+    list_display = ['image_preview', 'name', 'category', 'price_display', 'weight', 'order', 'is_active']
     list_display_links = ['image_preview', 'name']
-    list_editable = ['is_active']
+    list_editable = ['order', 'is_active']
     list_filter = ['category', 'is_active']
     search_fields = ['name', 'description']
+    ordering = ['order']
     list_per_page = 20
     readonly_fields = ['image_preview_large', 'created_at']
     fieldsets = (
         ('Asosiy', {'fields': ('category', 'name', 'description', 'weight')}),
-        ('Narx va holat', {'fields': ('price', 'is_active')}),
+        ('Narx va holat', {'fields': ('price', 'order', 'is_active')}),
         ('Rasm', {'fields': ('image', 'image_preview_large')}),
     )
 
@@ -54,3 +55,4 @@ class ProductAdmin(admin.ModelAdmin):
         return format_html('<b style="color:#f39c12">{} so\'m</b>', f"{obj.price:,}")
     price_display.short_description = "Narxi"
     price_display.admin_order_field = 'price'
+
