@@ -22,7 +22,7 @@ def notify_admin(order):
         f"  • {i.product_name} x{i.quantity} = {i.subtotal:,} so'm"
         for i in items
     )
-    text = (
+    order_text = (
         f"🆕 <b>Yangi buyurtma #{order.id}</b>\n\n"
         f"👤 {order.full_name}\n"
         f"📞 {order.phone}\n"
@@ -33,25 +33,48 @@ def notify_admin(order):
     )
 
     try:
-        # Matn xabar yuborish
-        r = requests.post(f"{base_url}/sendMessage", json={
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": "HTML",
-        }, timeout=10)
-        print(f"Telegram sendMessage: {r.status_code} — {r.text}")
-
-        # Mahsulot rasmlari (alohida)
+        # Rasmli mahsulotlarni yig'ish
+        photos = []
         for item in items:
             if item.product and item.product.image:
                 img_path = item.product.image.path
                 if os.path.exists(img_path):
-                    with open(img_path, 'rb') as f:
-                        r2 = requests.post(f"{base_url}/sendPhoto", data={
-                            "chat_id": chat_id,
-                            "caption": item.product_name,
-                        }, files={"photo": f}, timeout=10)
-                        print(f"Telegram sendPhoto: {r2.status_code}")
+                    photos.append((img_path, item.product_name))
+
+        # Media group yuborish (max 10 ta har bir guruhda)
+        BATCH = 10
+        batches = [photos[i:i+BATCH] for i in range(0, len(photos), BATCH)] if photos else []
+
+        for batch_idx, batch in enumerate(batches):
+            is_last = (batch_idx == len(batches) - 1)
+            media = []
+            files = {}
+            for idx, (img_path, name) in enumerate(batch):
+                key = f"photo{idx}"
+                media.append({
+                    "type": "photo",
+                    "media": f"attach://{key}",
+                    # Oxirgi guruhning oxirgi rasmiga caption qo'shilmaydi — alohida text yuboriladi
+                })
+                files[key] = open(img_path, 'rb')
+
+            try:
+                r = requests.post(f"{base_url}/sendMediaGroup", data={
+                    "chat_id": chat_id,
+                    "media": json.dumps(media),
+                }, files=files, timeout=30)
+                print(f"Telegram sendMediaGroup batch {batch_idx}: {r.status_code}")
+            finally:
+                for f in files.values():
+                    f.close()
+
+        # Order detallari matni — oxirgi mediagroupdan keyin (yoki rasm yo'q bo'lsa ham)
+        r2 = requests.post(f"{base_url}/sendMessage", json={
+            "chat_id": chat_id,
+            "text": order_text,
+            "parse_mode": "HTML",
+        }, timeout=10)
+        print(f"Telegram sendMessage: {r2.status_code}")
 
         # Lokatsiya
         if order.latitude and order.longitude:
@@ -60,7 +83,7 @@ def notify_admin(order):
                 "latitude": float(order.latitude),
                 "longitude": float(order.longitude),
             }, timeout=10)
-            print(f"Telegram sendLocation: {r3.status_code} — {r3.text}")
+            print(f"Telegram sendLocation: {r3.status_code}")
 
     except Exception as e:
         print(f"Telegram notify error: {e}")
