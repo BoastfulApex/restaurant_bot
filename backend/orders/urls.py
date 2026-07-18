@@ -7,6 +7,14 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Order, OrderItem
+from users.models import BotUser
+
+
+def format_phone(phone):
+    digits = ''.join(ch for ch in phone if ch.isdigit())
+    if digits.startswith('998'):
+        digits = digits[3:]
+    return f"+998 {digits}"
 
 
 def notify_admin(order):
@@ -25,7 +33,7 @@ def notify_admin(order):
     order_text = (
         f"🆕 <b>Yangi buyurtma #{order.id}</b>\n\n"
         f"👤 {order.full_name}\n"
-        f"📞 {order.phone}\n"
+        f"📞 {format_phone(order.phone)}\n"
         f"📍 {order.address or '—'}\n\n"
         f"🛒 Buyurtma:\n{items_text}\n\n"
         f"💰 Jami: <b>{order.total_price:,} so'm</b>\n"
@@ -89,6 +97,19 @@ def notify_admin(order):
         print(f"Telegram notify error: {e}")
 
 
+def sync_bot_user(telegram_id, full_name='', username='', phone=''):
+    if not telegram_id:
+        return
+    defaults = {}
+    if full_name:
+        defaults['full_name'] = full_name
+    if username:
+        defaults['username'] = username
+    if phone:
+        defaults['phone'] = phone
+    BotUser.objects.update_or_create(telegram_id=telegram_id, defaults=defaults)
+
+
 @api_view(['POST'])
 def create_order(request):
     data = request.data
@@ -102,6 +123,12 @@ def create_order(request):
             longitude=data.get('longitude'),
             total_price=data.get('total_price', 0),
             note=data.get('note', ''),
+        )
+        sync_bot_user(
+            order.telegram_id,
+            full_name=order.full_name,
+            username=data.get('username', ''),
+            phone=order.phone,
         )
         for item in data.get('items', []):
             OrderItem.objects.create(

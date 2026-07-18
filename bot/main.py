@@ -3,10 +3,7 @@ import os
 import aiohttp
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
-from aiogram.types import (
-    InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo,
-    ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove,
-)
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -20,14 +17,12 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
-async def register_user(user: types.User, phone: str | None = None):
+async def register_user(user: types.User):
     payload = {
         'telegram_id': user.id,
         'full_name': user.full_name,
         'username': user.username or '',
     }
-    if phone:
-        payload['phone'] = phone
     try:
         async with aiohttp.ClientSession() as session:
             await session.post(f"{API_URL}/users/register/", json=payload, timeout=10)
@@ -39,26 +34,6 @@ async def register_user(user: types.User, phone: str | None = None):
 async def start(message: types.Message):
     await register_user(message.from_user)
 
-    phone_keyboard = ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text="📞 Raqamni yuborish", request_contact=True)]],
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-    await message.answer(
-        "🍽 <b>Ansor Tushenka Botiga xush kelibsiz!</b>\n\n"
-        "Buyurtma berishda tezroq bog'lanish uchun telefon raqamingizni yuboring 👇",
-        reply_markup=phone_keyboard,
-        parse_mode="HTML"
-    )
-
-
-@dp.message(lambda m: m.contact is not None)
-async def contact_handler(message: types.Message):
-    if message.contact.user_id != message.from_user.id:
-        return
-
-    await register_user(message.from_user, phone=message.contact.phone_number)
-
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(
             text="🛒 Buyurtma berish",
@@ -66,12 +41,10 @@ async def contact_handler(message: types.Message):
         )]
     ])
     await message.answer(
-        "✅ Rahmat! Endi menyuni ko'rish va buyurtma berish uchun tugmani bosing 👇",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-    await message.answer(
-        "Buyurtma berish uchun bosing:",
+        "🍽 <b>Ansor Tushenka Botiga xush kelibsiz!</b>\n\n"
+        "Menyuni ko'rish va buyurtma berish uchun tugmani bosing 👇",
         reply_markup=keyboard,
+        parse_mode="HTML"
     )
 
 

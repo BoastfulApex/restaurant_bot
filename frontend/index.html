@@ -782,6 +782,7 @@ async function submitOrder() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         telegram_id: tg?.initDataUnsafe?.user?.id||0,
+        username: tg?.initDataUnsafe?.user?.username||'',
         full_name:fn, phone:ph,
         address:selectedLocation.address,
         note:document.getElementById('note').value.trim(),
