@@ -301,6 +301,13 @@
     .map-selected-addr { font-size: 13px; color: #777; margin-bottom: 10px; min-height: 18px; text-align: center; }
     .map-btn-myloc { position: absolute; bottom: 130px; right: 12px; z-index: 600; width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: 1px solid var(--gray-line); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 
+    /* ── UNIT PICKER ── */
+    .unit-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,.5); display: none; align-items: flex-end; justify-content: center; }
+    .unit-overlay.open { display: flex; }
+    .unit-sheet { width: 100%; max-width: 430px; background: var(--white); border-radius: 20px 20px 0 0; padding: 0 20px 24px; animation: slideUp .3s cubic-bezier(.25,.8,.25,1); }
+    .unit-title { font-size: 15px; font-weight: 700; color: var(--dark); text-align: center; margin: 14px 0 16px; }
+    .unit-cancel { width: 100%; background: none; border: none; color: #999; font-size: 13px; font-weight: 600; padding: 12px; cursor: pointer; }
+
     /* ── MISC ── */
     .empty-state { text-align: center; padding: 60px 20px; color: #999; font-size: 14px; }
     .loading { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 60px 20px; }
@@ -452,6 +459,17 @@
   </div>
 </div>
 
+<!-- ══ UNIT PICKER ══ -->
+<div class="unit-overlay" id="unitOverlay">
+  <div class="unit-sheet">
+    <div class="map-handle"></div>
+    <div class="unit-title" id="unitProductName"></div>
+    <button class="btn-main" onclick="pickUnit('dona')">Dona</button>
+    <button class="btn-outline" onclick="pickUnit('karobka')">Karobka (24 dona)</button>
+    <button class="unit-cancel" onclick="closeUnitPicker()">Bekor qilish</button>
+  </div>
+</div>
+
 <!-- ══ BOTTOM NAV ══ -->
 <nav class="bottom-nav">
   <div class="nav-item active" id="nav-menu" onclick="goPage('menu')">
@@ -510,12 +528,18 @@ if (tg) { tg.ready(); tg.expand(); tg.enableClosingConfirmation(); }
 let menu = [], cart = {}, activeTab = 0;
 let selectedLocation = null;
 let leafletMap = null, leafletMarker = null, searchTimeout = null;
+let pendingUnitProduct = null;
 
-const cartTotal = () => Object.values(cart).reduce((s,i) => s + i.price * i.qty, 0);
+const BOX_SIZE = 24;
+const qtyLabel = item => item.unit === 'karobka' ? `${item.qty} karobka (${item.qty*BOX_SIZE} dona)` : `${item.qty}`;
+const lineTotal = item => item.unit === 'karobka' ? item.price * BOX_SIZE * item.qty : item.price * item.qty;
+const cartTotal = () => Object.values(cart).reduce((s,i) => s + lineTotal(i), 0);
 const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
-function addToCart(p) {
-  cart[p.id] ? cart[p.id].qty++ : (cart[p.id] = {...p, qty:1});
+function addToCart(p, unit) {
+  if (cart[p.id]) { cart[p.id].qty++; }
+  else if (unit) { cart[p.id] = {...p, qty:1, unit}; }
+  else { openUnitPicker(p); return; }
   updateCartUI(); updateProductCard(p.id);
 }
 function removeFromCart(id) {
@@ -524,18 +548,34 @@ function removeFromCart(id) {
   updateCartUI(); updateProductCard(id);
 }
 
+function openUnitPicker(p) {
+  pendingUnitProduct = p;
+  document.getElementById('unitProductName').textContent = p.name;
+  document.getElementById('unitOverlay').classList.add('open');
+}
+function closeUnitPicker() {
+  document.getElementById('unitOverlay').classList.remove('open');
+  pendingUnitProduct = null;
+}
+function pickUnit(unit) {
+  if (!pendingUnitProduct) return;
+  const p = pendingUnitProduct;
+  closeUnitPicker();
+  addToCart(p, unit);
+}
+
 function updateProductCard(id) {
   const el = document.getElementById('product-' + id);
   if (!el) return;
   const p = menu.flatMap(c => c.products).find(p => p.id === id);
   if (!p) return;
-  const qty = cart[id]?.qty || 0;
+  const item = cart[id];
   const safe = JSON.stringify(p).replace(/"/g,'&quot;');
-  const ctrl = qty === 0
+  const ctrl = !item
     ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
     : `<div class="qty-row">
          <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
-         <span class="qty-num">${qty}</span>
+         <span class="qty-num">${qtyLabel(item)}</span>
          <button class="btn-qty" onclick="addToCart(${safe})">+</button>
        </div>`;
   const existing = el.querySelector('.add-btn, .qty-row');
@@ -606,16 +646,16 @@ function renderCatStrip() {
 }
 
 function productCard(p) {
-  const qty = cart[p.id]?.qty || 0;
+  const item = cart[p.id];
   const safe = JSON.stringify(p).replace(/"/g,'&quot;');
   const imgHtml = p.image
     ? `<img class="product-img" src="${p.image}" alt="${p.name}" loading="lazy"/>`
     : `<div class="product-img-placeholder">🥩</div>`;
-  const ctrl = qty === 0
+  const ctrl = !item
     ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
     : `<div class="qty-row">
          <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
-         <span class="qty-num">${qty}</span>
+         <span class="qty-num">${qtyLabel(item)}</span>
          <button class="btn-qty" onclick="addToCart(${safe})">+</button>
        </div>`;
   return `<div class="product-card" id="product-${p.id}">
@@ -671,12 +711,12 @@ function renderCart() {
       const safe = JSON.stringify(item).replace(/"/g,'&quot;');
       return `<div class="cart-item">
         <div>
-          <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-price">${(item.price*item.qty).toLocaleString()} so'm</div>
+          <div class="cart-item-name">${item.name}${item.unit==='karobka' ? ' — Karobka' : ''}</div>
+          <div class="cart-item-price">${lineTotal(item).toLocaleString()} so'm</div>
         </div>
         <div class="cart-qty-row">
           <button class="cart-btn-qty" onclick="removeFromCart(${item.id});renderCart()">−</button>
-          <span class="cart-qty-num">${item.qty}</span>
+          <span class="cart-qty-num">${qtyLabel(item)}</span>
           <button class="cart-btn-qty" onclick="addToCart(${safe});renderCart()">+</button>
         </div>
       </div>`;
@@ -788,7 +828,12 @@ async function submitOrder() {
         note:document.getElementById('note').value.trim(),
         latitude:selectedLocation.lat, longitude:selectedLocation.lng,
         total_price:cartTotal(),
-        items:Object.values(cart).map(i=>({product_id:i.id,name:i.name,price:i.price,quantity:i.qty}))
+        items:Object.values(cart).map(i=>({
+          product_id:i.id,
+          name: i.unit==='karobka' ? `${i.name} — Karobka (${BOX_SIZE} dona)` : i.name,
+          price: i.unit==='karobka' ? i.price*BOX_SIZE : i.price,
+          quantity:i.qty
+        }))
       })
     });
     if (res.ok) {
