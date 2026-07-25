@@ -527,7 +527,7 @@ let pendingUnitProduct = null;
 
 const BOX_SIZE = 24;
 const qtyLabel = item => item.unit === 'qadoq' ? `${item.qty} qadoq` : `${item.qty} dona`;
-const lineTotal = item => item.unit === 'qadoq' ? item.box_price * item.qty : item.price * item.qty;
+const lineTotal = item => item.unit === 'qadoq' ? item.box_price * BOX_SIZE * item.qty : item.price * item.qty;
 const cartTotal = () => Object.values(cart).reduce((s,i) => s + lineTotal(i), 0);
 const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
@@ -550,7 +550,7 @@ function openUnitPicker(p) {
   const qadoqBtn = document.getElementById('unitBtnQadoq');
   if (p.box_price) {
     qadoqBtn.style.display = '';
-    qadoqBtn.textContent = `Qadoq (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan`;
+    qadoqBtn.textContent = `Qadoq (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan (jami ${(p.box_price*BOX_SIZE).toLocaleString()} so'm)`;
   } else {
     qadoqBtn.style.display = 'none';
   }
@@ -836,7 +836,7 @@ async function submitOrder() {
         items:Object.values(cart).map(i=>({
           product_id:i.id,
           name: i.unit==='qadoq' ? `${i.name} — Qadoq (${BOX_SIZE} dona)` : i.name,
-          price: i.unit==='qadoq' ? i.box_price : i.price,
+          price: i.unit==='qadoq' ? i.box_price*BOX_SIZE : i.price,
           quantity:i.qty
         }))
       })
