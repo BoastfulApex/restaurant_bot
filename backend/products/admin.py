@@ -27,7 +27,7 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ['image_preview_large', 'created_at']
     fieldsets = (
         ('Asosiy', {'fields': ('category', 'name', 'description', 'weight')}),
-        ('Narx va holat', {'fields': ('price', 'order', 'is_active')}),
+        ('Narx va holat', {'fields': ('price', 'box_price', 'order', 'is_active')}),
         ('Rasm', {'fields': ('image', 'image_preview_large')}),
     )
 

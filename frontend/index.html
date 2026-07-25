@@ -159,12 +159,7 @@
       display: flex; align-items: center; justify-content: center; font-size: 48px;
     }
     .product-info { padding: 12px 14px 0; }
-    .product-price {
-      font-family: 'Unbounded', cursive;
-      font-size: 15px; font-weight: 700;
-      color: var(--yellow); letter-spacing: 0.5px;
-    }
-    .product-name { font-size: 13px; font-weight: 600; color: var(--white); margin-top: 4px; }
+    .product-name { font-size: 13px; font-weight: 600; color: var(--white); }
     .product-weight { font-size: 12px; color: var(--text-light); margin-top: 2px; }
     .add-btn {
       margin: 12px 14px 14px;
@@ -464,8 +459,8 @@
   <div class="unit-sheet">
     <div class="map-handle"></div>
     <div class="unit-title" id="unitProductName"></div>
-    <button class="btn-main" onclick="pickUnit('dona')">Dona</button>
-    <button class="btn-outline" onclick="pickUnit('karobka')">Karobka (24 dona)</button>
+    <button class="btn-main" id="unitBtnDona" onclick="pickUnit('dona')"></button>
+    <button class="btn-outline" id="unitBtnQadoq" onclick="pickUnit('qadoq')"></button>
     <button class="unit-cancel" onclick="closeUnitPicker()">Bekor qilish</button>
   </div>
 </div>
@@ -531,8 +526,8 @@ let leafletMap = null, leafletMarker = null, searchTimeout = null;
 let pendingUnitProduct = null;
 
 const BOX_SIZE = 24;
-const qtyLabel = item => item.unit === 'karobka' ? `${item.qty} karobka (${item.qty*BOX_SIZE} dona)` : `${item.qty}`;
-const lineTotal = item => item.unit === 'karobka' ? item.price * BOX_SIZE * item.qty : item.price * item.qty;
+const qtyLabel = item => item.unit === 'qadoq' ? `${item.qty} qadoq` : `${item.qty} dona`;
+const lineTotal = item => item.unit === 'qadoq' ? item.box_price * item.qty : item.price * item.qty;
 const cartTotal = () => Object.values(cart).reduce((s,i) => s + lineTotal(i), 0);
 const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
@@ -551,6 +546,14 @@ function removeFromCart(id) {
 function openUnitPicker(p) {
   pendingUnitProduct = p;
   document.getElementById('unitProductName').textContent = p.name;
+  document.getElementById('unitBtnDona').textContent = `Dona — ${p.price.toLocaleString()} so'm`;
+  const qadoqBtn = document.getElementById('unitBtnQadoq');
+  if (p.box_price) {
+    qadoqBtn.style.display = '';
+    qadoqBtn.textContent = `Qadoq (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan`;
+  } else {
+    qadoqBtn.style.display = 'none';
+  }
   document.getElementById('unitOverlay').classList.add('open');
 }
 function closeUnitPicker() {
@@ -661,7 +664,6 @@ function productCard(p) {
   return `<div class="product-card" id="product-${p.id}">
     ${imgHtml}
     <div class="product-info">
-      <div class="product-price">${p.price.toLocaleString()} UZS</div>
       <div class="product-name">${p.name}</div>
       ${p.weight ? `<div class="product-weight">${p.weight} g</div>` : ''}
     </div>
@@ -709,10 +711,13 @@ function renderCart() {
     <p class="page-title">Tanlangan mahsulotlar</p>
     ${items.map(item => {
       const safe = JSON.stringify(item).replace(/"/g,'&quot;');
+      const detailText = item.unit === 'qadoq'
+        ? `${item.qty} qadoq, ${item.qty*BOX_SIZE} dona, ${item.box_price.toLocaleString()} so'mdan, jami ${lineTotal(item).toLocaleString()} so'm`
+        : `${lineTotal(item).toLocaleString()} so'm`;
       return `<div class="cart-item">
         <div>
-          <div class="cart-item-name">${item.name}${item.unit==='karobka' ? ' — Karobka' : ''}</div>
-          <div class="cart-item-price">${lineTotal(item).toLocaleString()} so'm</div>
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${detailText}</div>
         </div>
         <div class="cart-qty-row">
           <button class="cart-btn-qty" onclick="removeFromCart(${item.id});renderCart()">−</button>
@@ -830,8 +835,8 @@ async function submitOrder() {
         total_price:cartTotal(),
         items:Object.values(cart).map(i=>({
           product_id:i.id,
-          name: i.unit==='karobka' ? `${i.name} — Karobka (${BOX_SIZE} dona)` : i.name,
-          price: i.unit==='karobka' ? i.price*BOX_SIZE : i.price,
+          name: i.unit==='qadoq' ? `${i.name} — Qadoq (${BOX_SIZE} dona)` : i.name,
+          price: i.unit==='qadoq' ? i.box_price : i.price,
           quantity:i.qty
         }))
       })

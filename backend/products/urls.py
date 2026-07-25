@@ -21,6 +21,7 @@ def menu(request):
                     'name': p.name,
                     'description': p.description,
                     'price': p.price,
+                    'box_price': p.box_price,
                     'image': request.build_absolute_uri(p.image.url) if p.image else None,
                     'weight': p.weight,
                 }

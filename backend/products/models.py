@@ -24,6 +24,10 @@ class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nomi")
     description = models.TextField(blank=True, verbose_name="Tavsif")
     price = models.PositiveIntegerField(null=True, blank=True, verbose_name="Narxi (so'm)")
+    box_price = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Qadoq narxi (so'm)",
+        help_text="1 qadoq (24 dona) narxi. Bo'sh qoldirilsa, mahsulot qadoqlab sotilmaydi."
+    )
     image = models.ImageField(upload_to='products/', blank=True, verbose_name="Rasm")
     weight = models.CharField(max_length=50, blank=True, verbose_name="Og'irligi")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
