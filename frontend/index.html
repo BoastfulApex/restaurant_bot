@@ -461,7 +461,7 @@
     <div class="map-handle"></div>
     <div class="unit-title" id="unitProductName"></div>
     <button class="btn-main" id="unitBtnDona" onclick="pickUnit('dona')"></button>
-    <button class="btn-outline" id="unitBtnQadoq" onclick="pickUnit('qadoq')"></button>
+    <button class="btn-outline" id="unitBtnKarobka" onclick="pickUnit('karobka')"></button>
     <button class="unit-cancel" onclick="closeUnitPicker()">Bekor qilish</button>
   </div>
 </div>
@@ -527,8 +527,8 @@ let leafletMap = null, leafletMarker = null, searchTimeout = null;
 let pendingUnitProduct = null;
 
 const BOX_SIZE = 24;
-const qtyLabel = item => item.unit === 'qadoq' ? `${item.qty} qadoq` : `${item.qty} dona`;
-const lineTotal = item => item.unit === 'qadoq' ? item.box_price * BOX_SIZE * item.qty : item.price * item.qty;
+const qtyLabel = item => item.unit === 'karobka' ? `${item.qty} karobka` : `${item.qty} dona`;
+const lineTotal = item => item.unit === 'karobka' ? item.box_price * BOX_SIZE * item.qty : item.price * item.qty;
 const cartTotal = () => Object.values(cart).reduce((s,i) => s + lineTotal(i), 0);
 const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
@@ -548,12 +548,12 @@ function openUnitPicker(p) {
   pendingUnitProduct = p;
   document.getElementById('unitProductName').textContent = p.name;
   document.getElementById('unitBtnDona').textContent = `Dona — ${p.price.toLocaleString()} so'm`;
-  const qadoqBtn = document.getElementById('unitBtnQadoq');
+  const karobkaBtn = document.getElementById('unitBtnKarobka');
   if (p.box_price) {
-    qadoqBtn.style.display = '';
-    qadoqBtn.textContent = `Qadoq (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan (jami ${(p.box_price*BOX_SIZE).toLocaleString()} so'm)`;
+    karobkaBtn.style.display = '';
+    karobkaBtn.textContent = `Karobka (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan (jami ${(p.box_price*BOX_SIZE).toLocaleString()} so'm)`;
   } else {
-    qadoqBtn.style.display = 'none';
+    karobkaBtn.style.display = 'none';
   }
   document.getElementById('unitOverlay').classList.add('open');
 }
@@ -716,8 +716,8 @@ function renderCart() {
     <p class="page-title">Tanlangan mahsulotlar</p>
     ${items.map(item => {
       const safe = JSON.stringify(item).replace(/"/g,'&quot;');
-      const detailText = item.unit === 'qadoq'
-        ? `${item.qty} qadoq, ${item.qty*BOX_SIZE} dona, ${item.box_price.toLocaleString()} so'mdan, jami ${lineTotal(item).toLocaleString()} so'm`
+      const detailText = item.unit === 'karobka'
+        ? `${item.qty} karobka, ${item.qty*BOX_SIZE} dona, ${item.box_price.toLocaleString()} so'mdan, jami ${lineTotal(item).toLocaleString()} so'm`
         : `${lineTotal(item).toLocaleString()} so'm`;
       return `<div class="cart-item">
         <div>
@@ -840,8 +840,8 @@ async function submitOrder() {
         total_price:cartTotal(),
         items:Object.values(cart).map(i=>({
           product_id:i.id,
-          name: i.unit==='qadoq' ? `${i.name} — Qadoq (${BOX_SIZE} dona)` : i.name,
-          price: i.unit==='qadoq' ? i.box_price*BOX_SIZE : i.price,
+          name: i.unit==='karobka' ? `${i.name} — Karobka (${BOX_SIZE} dona)` : i.name,
+          price: i.unit==='karobka' ? i.box_price*BOX_SIZE : i.price,
           quantity:i.qty
         }))
       })
