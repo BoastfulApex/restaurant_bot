@@ -172,8 +172,9 @@
     .add-btn:active { background: var(--yellow-dark); transform: scale(.97); }
     .qty-row {
       margin: 12px 14px 14px;
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
     }
+    .qty-buttons { display: flex; align-items: center; justify-content: space-between; width: 100%; }
     .btn-qty {
       width: 44px; height: 44px; border-radius: 12px;
       background: var(--yellow); border: none; color: var(--dark);
@@ -182,7 +183,7 @@
       transition: background .12s;
     }
     .btn-qty:active { background: var(--yellow-dark); }
-    .qty-num { font-size: 16px; font-weight: 700; color: var(--white); }
+    .qty-num { font-size: 17px; font-weight: 800; color: var(--white); text-align: center; }
 
     /* ── BOTTOM NAV ── */
     .bottom-nav {
@@ -228,7 +229,7 @@
     .cart-qty-row { display: flex; align-items: center; gap: 8px; }
     .cart-btn-qty { width: 32px; height: 32px; border-radius: 10px; background: var(--yellow); border: none; color: var(--dark); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .cart-btn-qty:active { background: var(--yellow-dark); }
-    .cart-qty-num { font-size: 14px; font-weight: 700; color: var(--dark); min-width: 20px; text-align: center; }
+    .cart-qty-num { font-size: 15px; font-weight: 800; color: var(--dark); min-width: 20px; text-align: center; }
     .total-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; font-size: 14px; font-weight: 600; border-top: 2px solid var(--gray-line); margin-top: 8px; }
     .total-amount { font-family: 'Unbounded', cursive; font-size: 16px; font-weight: 700; color: var(--dark); }
 
@@ -577,9 +578,11 @@ function updateProductCard(id) {
   const ctrl = !item
     ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
     : `<div class="qty-row">
-         <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
          <span class="qty-num">${qtyLabel(item)}</span>
-         <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+         <div class="qty-buttons">
+           <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
+           <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+         </div>
        </div>`;
   const existing = el.querySelector('.add-btn, .qty-row');
   if (existing) existing.outerHTML = ctrl;
@@ -657,9 +660,11 @@ function productCard(p) {
   const ctrl = !item
     ? `<button class="add-btn" onclick="addToCart(${safe})">+</button>`
     : `<div class="qty-row">
-         <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
          <span class="qty-num">${qtyLabel(item)}</span>
-         <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+         <div class="qty-buttons">
+           <button class="btn-qty" onclick="removeFromCart(${p.id})">−</button>
+           <button class="btn-qty" onclick="addToCart(${safe})">+</button>
+         </div>
        </div>`;
   return `<div class="product-card" id="product-${p.id}">
     ${imgHtml}
