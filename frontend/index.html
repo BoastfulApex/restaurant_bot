@@ -461,7 +461,7 @@
     <div class="map-handle"></div>
     <div class="unit-title" id="unitProductName"></div>
     <button class="btn-main" id="unitBtnDona" onclick="pickUnit('dona')"></button>
-    <button class="btn-outline" id="unitBtnKarobka" onclick="pickUnit('karobka')"></button>
+    <button class="btn-outline" id="unitBtnQuti" onclick="pickUnit('quti')"></button>
     <button class="unit-cancel" onclick="closeUnitPicker()">Bekor qilish</button>
   </div>
 </div>
@@ -527,8 +527,9 @@ let leafletMap = null, leafletMarker = null, searchTimeout = null;
 let pendingUnitProduct = null;
 
 const BOX_SIZE = 24;
-const qtyLabel = item => item.unit === 'karobka' ? `${item.qty} karobka` : `${item.qty} dona`;
-const lineTotal = item => item.unit === 'karobka' ? item.box_price * BOX_SIZE * item.qty : item.price * item.qty;
+const fmt = n => Math.round(n).toLocaleString('en-US').replace(/,/g, ' ');
+const qtyLabel = item => item.unit === 'quti' ? `${item.qty} quti` : `${item.qty} dona`;
+const lineTotal = item => item.unit === 'quti' ? item.box_price * BOX_SIZE * item.qty : item.price * item.qty;
 const cartTotal = () => Object.values(cart).reduce((s,i) => s + lineTotal(i), 0);
 const cartCount = () => Object.values(cart).reduce((s,i) => s + i.qty, 0);
 
@@ -547,13 +548,13 @@ function removeFromCart(id) {
 function openUnitPicker(p) {
   pendingUnitProduct = p;
   document.getElementById('unitProductName').textContent = p.name;
-  document.getElementById('unitBtnDona').textContent = `Dona — ${p.price.toLocaleString()} so'm`;
-  const karobkaBtn = document.getElementById('unitBtnKarobka');
+  document.getElementById('unitBtnDona').textContent = `Dona — ${fmt(p.price)} so'm`;
+  const qutiBtn = document.getElementById('unitBtnQuti');
   if (p.box_price) {
-    karobkaBtn.style.display = '';
-    karobkaBtn.textContent = `Karobka (${BOX_SIZE} dona) — ${p.box_price.toLocaleString()} so'mdan (jami ${(p.box_price*BOX_SIZE).toLocaleString()} so'm)`;
+    qutiBtn.style.display = '';
+    qutiBtn.textContent = `Quti (${BOX_SIZE} dona) — ${fmt(p.box_price)} so'mdan`;
   } else {
-    karobkaBtn.style.display = 'none';
+    qutiBtn.style.display = 'none';
   }
   document.getElementById('unitOverlay').classList.add('open');
 }
@@ -620,7 +621,7 @@ function goPage(name) {
   if (name==='cart') renderCart();
   if (name==='orders') renderOrders();
   if (name==='form') {
-    document.getElementById('formTotal').textContent = cartTotal().toLocaleString() + " so'm";
+    document.getElementById('formTotal').textContent = fmt(cartTotal()) + " so'm";
     updateLocUI();
     setTimeout(() => document.getElementById('fullName').focus(), 300);
   }
@@ -716,9 +717,9 @@ function renderCart() {
     <p class="page-title">Tanlangan mahsulotlar</p>
     ${items.map(item => {
       const safe = JSON.stringify(item).replace(/"/g,'&quot;');
-      const detailText = item.unit === 'karobka'
-        ? `${item.qty} karobka, ${item.qty*BOX_SIZE} dona, ${item.box_price.toLocaleString()} so'mdan, jami ${lineTotal(item).toLocaleString()} so'm`
-        : `${lineTotal(item).toLocaleString()} so'm`;
+      const detailText = item.unit === 'quti'
+        ? `${item.qty} quti (${BOX_SIZE} dona) — ${fmt(item.box_price)} so'mdan (Jami: ${fmt(lineTotal(item))} so'm)`
+        : `${item.qty} dona — ${fmt(lineTotal(item))} so'm`;
       return `<div class="cart-item">
         <div>
           <div class="cart-item-name">${item.name}</div>
@@ -732,7 +733,7 @@ function renderCart() {
       </div>`;
     }).join('')}
     <div class="divider" style="margin-top:4px"></div>
-    <div class="total-row"><span>Jami</span><span class="total-amount">${cartTotal().toLocaleString()} so'm</span></div>
+    <div class="total-row"><span>Jami</span><span class="total-amount">${fmt(cartTotal())} so'm</span></div>
     <button class="btn-main" onclick="goPage('form')" style="margin-top:4px">Buyurtma berish</button>`;
 }
 
@@ -744,7 +745,7 @@ function renderOrders() {
     <div class="order-card">
       <div class="order-header">
         <div class="order-id">Buyurtma #${o.id}</div>
-        <div class="order-total">${o.total.toLocaleString()} so'm</div>
+        <div class="order-total">${fmt(o.total)} so'm</div>
       </div>
       <div class="order-date">${new Date(o.date).toLocaleString('uz-UZ')}</div>
     </div>`).join('');
@@ -840,8 +841,8 @@ async function submitOrder() {
         total_price:cartTotal(),
         items:Object.values(cart).map(i=>({
           product_id:i.id,
-          name: i.unit==='karobka' ? `${i.name} — Karobka (${BOX_SIZE} dona)` : i.name,
-          price: i.unit==='karobka' ? i.box_price*BOX_SIZE : i.price,
+          name: i.unit==='quti' ? `${i.name} — Quti (${BOX_SIZE} dona)` : i.name,
+          price: i.unit==='quti' ? i.box_price*BOX_SIZE : i.price,
           quantity:i.qty
         }))
       })
