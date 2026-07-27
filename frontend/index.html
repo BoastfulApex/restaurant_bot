@@ -552,7 +552,7 @@ function openUnitPicker(p) {
   const qutiBtn = document.getElementById('unitBtnQuti');
   if (p.box_price) {
     qutiBtn.style.display = '';
-    qutiBtn.textContent = `Quti (${BOX_SIZE} dona) — ${fmt(p.box_price)} so'mdan`;
+    qutiBtn.textContent = `Quti (${BOX_SIZE} dona) — ${fmt(p.box_price)} so'mdan (Jami: ${fmt(p.box_price*BOX_SIZE)} so'm)`;
   } else {
     qutiBtn.style.display = 'none';
   }
